@@ -4,12 +4,12 @@ using System.Linq;
 namespace Server {
 	public class BuildConfig {
 		
-		public string       Name  { get; }
-		public List<string> Tasks { get; }
+		public string             Name     { get; }
+		public List<BuildCommand> Commands { get; }
 
-		public BuildConfig(string name, IEnumerable<string> tasks) {
+		public BuildConfig(string name, IEnumerable<BuildCommand> commands) {
 			Name  = name;
-			Tasks = tasks.ToList();
+			Commands = commands.ToList();
 		}
 	}
 }

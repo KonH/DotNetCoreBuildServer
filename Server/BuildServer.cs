@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Server.Commands;
 
 namespace Server {
 	public class BuildServer {
@@ -24,15 +25,19 @@ namespace Server {
 		}
 
 		void ProcessBuild() {
-			for (int i = 0; i < _buildConfig.Tasks.Count; i++) {
-				var task = _buildConfig.Tasks[i];
-				ProcessTask(task);
+			var commands = _buildConfig.Commands;
+			for (int i = 0; i < commands.Count; i++) {
+				var command = commands[i];
+				ProcessCommand(command);
 			}
 		}
 
-		void ProcessTask(string task) {
-			_build.StartTask(task);
-			_build.DoneTask(task, true);
+		void ProcessCommand(BuildCommand buildCommand) {
+			var taskName = buildCommand.Name;
+			_build.StartTask(taskName);
+			var commandImpl = CommandFactory.Create(taskName);
+			var result = commandImpl.Execute(buildCommand.Args);
+			_build.DoneTask(taskName, result.IsSuccess, result.Message);
 		}
 	}
 }

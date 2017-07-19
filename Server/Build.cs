@@ -27,7 +27,7 @@ namespace Server {
 		
 		public Build(BuildConfig config) {
 			Name  = config.Name;
-			Tasks = config.Tasks.Select(taskName => new BuildTask(taskName)).ToList();
+			Tasks = config.Commands.Select(command => new BuildTask(command.Name)).ToList();
 		}
 
 		BuildTask FindTask(string taskName) {

@@ -34,7 +34,7 @@ namespace ConsoleClient {
 			Console.WriteLine();
 			Console.WriteLine($"Build done: {_build.Name} (success: {_build.IsSuccess})");
 			foreach (var task in _build.Tasks) {
-				Console.WriteLine($"(success: {task.IsSuccess}, message: \"{task.Message}\")");	
+				Console.WriteLine($"{task.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");	
 			}
 		}
 	}
