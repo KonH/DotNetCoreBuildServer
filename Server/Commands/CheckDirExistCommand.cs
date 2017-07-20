@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Server.Commands {
 	public class CheckDirExistCommand:ICommand {
@@ -13,10 +14,25 @@ namespace Server.Commands {
 			if (string.IsNullOrEmpty(path)) {
 				return CommandResult.Fail("No path provided!");
 			}
+			string sizeMore = null;
+			args.TryGetValue("size_more", out sizeMore);
 			return 
 				Directory.Exists(path) ?
-				CommandResult.Success($"Directory \"{path}\" is exists") :
+				CheckSize(path, sizeMore) :
 				CommandResult.Fail($"Directory \"{path}\" does not exists!");
+		}
+
+		CommandResult CheckSize(string path, string sizeMore) {
+			int sizeMoreValue = 0;
+			int.TryParse(sizeMore, out sizeMoreValue);
+			if (sizeMoreValue > 0) {
+				var size = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Sum(t => (new FileInfo(t).Length));
+				return (size > sizeMoreValue) ?
+					CommandResult.Success($"Directory \"{path}\" size is {size} (more than {sizeMoreValue})") : 
+					CommandResult.Fail($"Directory \"{path}\" size is {size} (less than {sizeMoreValue})!");
+			} else {
+				return CommandResult.Success($"Directory \"{path}\" is exists");
+			}
 		}
 	}
 }
