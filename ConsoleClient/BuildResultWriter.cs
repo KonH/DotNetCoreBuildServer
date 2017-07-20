@@ -35,7 +35,11 @@ namespace ConsoleClient {
 			Console.WriteLine();
 			Console.WriteLine($"Build done: {_buildProcess.Name} (success: {_buildProcess.IsSuccess})");
 			foreach (var task in _buildProcess.Tasks) {
-				Console.WriteLine($"{task.Node.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");	
+				if (task.IsStarted) {
+					Console.WriteLine($"{task.Node.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");
+				} else {
+					Console.WriteLine($"{task.Node.Name} (skip)");
+				}
 			}
 		}
 	}

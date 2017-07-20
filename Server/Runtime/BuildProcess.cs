@@ -56,5 +56,9 @@ namespace Server.Runtime {
 				}
 			}
 		}
+
+		public void Abort() {
+			BuildDone?.Invoke();
+		}
 	}
 }

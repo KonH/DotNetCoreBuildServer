@@ -29,9 +29,12 @@ namespace Server {
 
 		void ProcessBuild() {
 			var nodes = _build.Nodes;
-			for (int i = 0; i < nodes.Count; i++) {
-				var node = nodes[i];
-				ProcessCommand(node);
+			foreach (var node in nodes) {
+				var result = ProcessCommand(node);
+				if (!result) {
+					_process.Abort();
+					break;
+				}
 			}
 		}
 
@@ -55,12 +58,13 @@ namespace Server {
 			return dict;
 		}
 		
-		void ProcessCommand(BuildNode node) {
+		bool ProcessCommand(BuildNode node) {
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
 			var runtimeArgs = CreateRuntimeArgs(_project, node);
 			var result = command.Execute(runtimeArgs);
 			_process.DoneTask(node, result.IsSuccess, result.Message);
+			return result.IsSuccess;
 		}
 	}
 }
