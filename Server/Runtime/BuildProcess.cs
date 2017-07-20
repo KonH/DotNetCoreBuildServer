@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Server.BuildConfig;
 
-namespace Server {
-	public class Build {
+namespace Server.Runtime {
+	public class BuildProcess {
 
 		public event Action<BuildTask> TaskStarted;
 		public event Action<BuildTask> TaskDone;
@@ -25,17 +26,17 @@ namespace Server {
 			get { return IsDone && Tasks.All(task => task.IsSuccess); }
 		}
 		
-		public Build(BuildConfig config) {
-			Name  = config.Name;
-			Tasks = config.Commands.Select(command => new BuildTask(command.Name)).ToList();
+		public BuildProcess(Build build) {
+			Name  = build.Name;
+			Tasks = build.Nodes.Select(node => new BuildTask(node)).ToList();
 		}
 
-		BuildTask FindTask(string taskName) {
-			return Tasks.FirstOrDefault(task => task.Name == taskName);
+		BuildTask FindTask(BuildNode node) {
+			return Tasks.FirstOrDefault(task => task.Node == node);
 		}
 		
-		public void StartTask(string taskName) {
-			var task = FindTask(taskName);
+		public void StartTask(BuildNode node) {
+			var task = FindTask(node);
 			if (task != null) {
 				if (!IsStarted) {
 					BuildStarted?.Invoke();
@@ -45,8 +46,8 @@ namespace Server {
 			}
 		}
 
-		public void DoneTask(string taskName, bool isSuccess, string message = "") {
-			var task = FindTask(taskName);
+		public void DoneTask(BuildNode node, bool isSuccess, string message) {
+			var task = FindTask(node);
 			if (task != null) {
 				task.Done(isSuccess, message);
 				TaskDone?.Invoke(task);

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace Server {
-	public class BuildCommand {
+namespace Server.BuildConfig {
+	public class BuildNode {
 		
 		public string                     Name { get; }
 		public Dictionary<string, string> Args { get; }
 
-		public BuildCommand(string name, Dictionary<string, string> args) {
+		public BuildNode(string name, Dictionary<string, string> args) {
 			Name = name;
 			Args = args;
 		}

@@ -2,22 +2,22 @@
 using Microsoft.Extensions.Configuration;
 
 namespace Server {
-	class ProjectConfig {
+	class Project {
 
 		public string Root { get; }
 		
-		ProjectConfig(string root) {
+		Project(string root) {
 			Root = root;
 		}
 		
-		public static ProjectConfig Load() {
+		public static Project Load() {
 			var builder = new ConfigurationBuilder().
 				AddInMemoryCollection(new [] {
 					new KeyValuePair<string, string>("root", "/Users/konh/Projects/CSharp/BuildServerExample") 
 				});
 			var config = builder.Build();
 			var root = config["root"];
-			return new ProjectConfig(root);
+			return new Project(root);
 		}
 	}
 }

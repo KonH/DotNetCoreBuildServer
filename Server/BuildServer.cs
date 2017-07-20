@@ -1,22 +1,23 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
+using Server.BuildConfig;
 using Server.Commands;
+using Server.Runtime;
 
 namespace Server {
 	public class BuildServer {
 
-		ProjectConfig _projectConfig = null;
-		BuildConfig   _buildConfig   = null;
-		Build         _build         = null;
+		Project      _project = null;
+		Build        _build   = null;
+		BuildProcess _process = null;
 		
 		public BuildServer() {
-			_projectConfig = ProjectConfig.Load();
+			_project = Project.Load();
 		}
 
-		public Build InitBuild(BuildConfig buildConfig) {
-			_buildConfig = buildConfig;
-			_build = new Build(buildConfig);
-			return _build;
+		public BuildProcess InitBuild(Build build) {
+			_build = build;
+			_process = new BuildProcess(build);
+			return _process;
 		}
 
 		public void StartBuild() {
@@ -25,19 +26,18 @@ namespace Server {
 		}
 
 		void ProcessBuild() {
-			var commands = _buildConfig.Commands;
-			for (int i = 0; i < commands.Count; i++) {
-				var command = commands[i];
-				ProcessCommand(command);
+			var nodes = _build.Nodes;
+			for (int i = 0; i < nodes.Count; i++) {
+				var node = nodes[i];
+				ProcessCommand(node);
 			}
 		}
 
-		void ProcessCommand(BuildCommand buildCommand) {
-			var taskName = buildCommand.Name;
-			_build.StartTask(taskName);
-			var commandImpl = CommandFactory.Create(taskName);
-			var result = commandImpl.Execute(buildCommand.Args);
-			_build.DoneTask(taskName, result.IsSuccess, result.Message);
+		void ProcessCommand(BuildNode node) {
+			_process.StartTask(node);
+			var command = CommandFactory.Create(node);
+			var result = command.Execute(node.Args);
+			_process.DoneTask(node, result.IsSuccess, result.Message);
 		}
 	}
 }
