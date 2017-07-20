@@ -7,6 +7,9 @@ namespace Server.Commands {
 		static readonly Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand> {
 			{"print", new PrintCommand()},
 			{"check_dir_exist", new CheckDirExistCommand()},
+			{"delete_dir", new DeleteDirCommand()},
+			{"check_file_exist", new CheckFileExistCommand()},
+			{"delete_file", new DeleteFileCommand()},
 			{"run", new RunCommand()}
 		};
 		
