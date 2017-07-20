@@ -11,7 +11,7 @@ namespace Server.Commands {
 		
 		public static ICommand Create(BuildNode node) {
 			ICommand command = null;
-			if (Commands.TryGetValue(node.Name, out command)) {
+			if (Commands.TryGetValue(node.Command, out command)) {
 				return command;
 			}
 			return new NotFoundCommand();
