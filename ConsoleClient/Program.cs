@@ -8,7 +8,7 @@ namespace ConsoleClient {
 			var server = new BuildServer();
 			var nodes = new BuildNode[] {
 				new BuildNode("print", new Dictionary<string, string>(){{"message", "test"}}),
-				new BuildNode("check_dir_exist", new Dictionary<string, string>(){{"path", "/Users/konh/Projects/CSharp/BuildServerExample"}}) 
+				new BuildNode("check_dir_exist", new Dictionary<string, string>(){{"path", "{root}"}}) 
 			};
 			var buildConfig = new Build("test", nodes);
 			var result = server.InitBuild(buildConfig);

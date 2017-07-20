@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
 using Server.Runtime;
@@ -33,10 +35,31 @@ namespace Server {
 			}
 		}
 
+		string ConvertArgValue(Project project, string value) {
+			var result = value;
+			foreach (var key in project.Keys) {
+				var keyFormat = string.Format("{{{0}}}", key.Key);
+				if (result.Contains(keyFormat)) {
+					result = result.Replace(keyFormat, key.Value);
+				}
+			}
+			return result;
+		}
+		
+		Dictionary<string, string> CreateRuntimeArgs(Project project, BuildNode node) {
+			var dict = new Dictionary<string, string>();
+			foreach (var arg in node.Args) {
+				var value = ConvertArgValue(project, arg.Value);
+				dict.Add(arg.Key, value);
+			}
+			return dict;
+		}
+		
 		void ProcessCommand(BuildNode node) {
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
-			var result = command.Execute(node.Args);
+			var runtimeArgs = CreateRuntimeArgs(_project, node);
+			var result = command.Execute(runtimeArgs);
 			_process.DoneTask(node, result.IsSuccess, result.Message);
 		}
 	}

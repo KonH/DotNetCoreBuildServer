@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 
 namespace Server {
 	class Project {
 
-		public string Root { get; }
+		public Dictionary<string, string> Keys { get; }
 		
-		Project(string root) {
-			Root = root;
+		Project(Dictionary<string, string> keys) {
+			Keys = keys;
 		}
 		
 		public static Project Load() {
@@ -16,8 +17,11 @@ namespace Server {
 					new KeyValuePair<string, string>("root", "/Users/konh/Projects/CSharp/BuildServerExample") 
 				});
 			var config = builder.Build();
-			var root = config["root"];
-			return new Project(root);
+			var keys = new Dictionary<string, string>();
+			foreach (var node in config.AsEnumerable()) {
+				keys.Add(node.Key, node.Value);
+			}
+			return new Project(keys);
 		}
 	}
 }
