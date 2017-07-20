@@ -18,7 +18,7 @@ namespace Server.Commands {
 			args.TryGetValue("if_exist", out ifExist);
 			try {
 				var ifExistValue = !string.IsNullOrEmpty(ifExist) && bool.Parse(ifExist);
-				if (!File.Exists("")) {
+				if (!File.Exists(path)) {
 					return ifExistValue ? 
 						CommandResult.Success() : 
 						CommandResult.Fail($"File \"{path}\" does not exists!");

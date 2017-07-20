@@ -17,8 +17,13 @@ namespace Server.Commands {
 			}
 			string commandArgs = null;
 			args.TryGetValue("args", out commandArgs);
+			string workDir = null;
+			args.TryGetValue("work_dir", out workDir);
 			try {
 				var startInfo = new ProcessStartInfo(path, commandArgs);
+				if (!string.IsNullOrEmpty(workDir)) {
+					startInfo.WorkingDirectory = workDir;
+				} 
 				var process = new Process {
 					StartInfo = startInfo
 				};
