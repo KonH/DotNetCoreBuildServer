@@ -14,6 +14,7 @@ namespace Server.Manager {
 			new Dictionary<string, Action<string[]>>();
 		
 		protected ServerManager(BuildServer server) {
+			AddHandler("status", RetrieveStatus);
 			AddHandler("build", StartBuild);
 			AddHandler("stop", StopServer);
 			Server = server;
@@ -27,8 +28,22 @@ namespace Server.Manager {
 			_handlers.Add(name, (_) => handler.Invoke());
 		}
 
-		protected void StartBuild() {
-			var build = Build.Load("dev_build.json");
+		void RetrieveStatus() {
+			ProcessStatus(Server.Builds);
+		}
+
+		protected abstract void ProcessStatus(Dictionary<string, string> builds);
+		
+		protected void StartBuild(string[] args) {
+			if ((args == null) || (args.Length == 0)) {
+				return;
+			}
+			var buildName = args[0];
+			var buildPath = Server.FindBuildPath(buildName);
+			if (string.IsNullOrEmpty(buildPath)) {
+				return;
+			}
+			var build = Build.Load(buildPath);
 			Server.InitBuild(build);
 			Server.StartBuild();
 		}

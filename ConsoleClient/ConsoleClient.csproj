@@ -7,7 +7,7 @@
     <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\Debug\netcoreapp1.1\dev_build.json" />
+    <Content Include="bin\Debug\netcoreapp1.1\buildConfigs\dev_build.json" />
     <Content Include="bin\Debug\netcoreapp1.1\project.json" />
   </ItemGroup>
 </Project>

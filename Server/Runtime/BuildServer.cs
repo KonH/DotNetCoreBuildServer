@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
@@ -8,6 +11,27 @@ namespace Server.Runtime {
 	public class BuildServer {
 
 		public event Action<BuildProcess> OnInitBuild;
+
+		string ConvertToBuildName(FileInfo file) {
+			var ext = file.Extension;
+			return file.Name.Substring(0, file.Name.Length - ext.Length);
+		}
+		
+		public Dictionary<string, string> Builds {
+			get {
+				var dict = new Dictionary<string, string>();
+				var buildsPath = _project.BuildsRoot;
+				if (Directory.Exists(buildsPath)) {
+					var files = Directory.EnumerateFiles(buildsPath, "*.json");
+					foreach (var filePath in files) {
+						var file = new FileInfo(filePath);
+						var fullPath = file.FullName;
+						dict.Add(ConvertToBuildName(file), fullPath);
+					}
+				}
+				return dict;
+			}
+		}
 		
 		readonly Project _project = null;
 		
@@ -19,6 +43,16 @@ namespace Server.Runtime {
 			_project = Project.Load(projectPath);
 		}
 
+		public string FindBuildPath(string buildName) {
+			var builds = Builds;
+			foreach (var build in builds) {
+				if (build.Key == buildName) {
+					return build.Value;
+				}
+			}
+			return null;
+		}
+		
 		public void InitBuild(Build build) {
 			if (_process != null) {
 				return;
