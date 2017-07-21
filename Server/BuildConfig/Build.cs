@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace Server.BuildConfig {
 	public class Build {
@@ -11,17 +13,26 @@ namespace Server.BuildConfig {
 			Name  = name;
 			Nodes = nodes.ToList();
 		}
-
-		public static Build Load() {
-			var nodes = new BuildNode[] {
-				new BuildNode("validate_project_root", "check_dir_exist", new Dictionary<string, string>(){{"path", "{root}"}, {"size_more", "1"}}),
-				new BuildNode("validate_sources", "check_file_exist", new Dictionary<string, string>(){{"path", "{root}/sources.txt"}}),
-				new BuildNode("clean_project", "delete_file", new Dictionary<string, string>(){{"path", "{root}/build.txt"},{"if_exist", "true"}}), 
-				new BuildNode("show_project_root", "run", new Dictionary<string, string>(){{"path", "ls"}, {"args", "{root}"}}), 
-				new BuildNode("make_build", "run", new Dictionary<string, string>(){{"path", "{root}/run.sh"}, {"work_dir", "{root}"}, {"log_file", "{root}/log.txt"}}),
-				new BuildNode("validate_build", "check_file_exist", new Dictionary<string, string>{{"path", "{root}/build.txt"}, {"size_more", "1"}}), 
-			};
-			var build = new Build("test", nodes);
+		
+		public static Build Load(string path) {
+			var builder = new ConfigurationBuilder().AddJsonFile(path);
+			var config = builder.Build();
+			var nodes = new List<BuildNode>();
+			foreach (var configNode in config.GetChildren()) {
+				var nodeName = configNode.Key;
+				var command = configNode.GetChildren().FirstOrDefault();
+				if (command != null) {
+					var commandName = command.Key;
+					var commandArgs = new Dictionary<string, string>();
+					var args = command.GetChildren();
+					foreach (var arg in args) {
+						commandArgs.Add(arg.Key, arg.Value);
+					}
+					var node = new BuildNode(nodeName, commandName, commandArgs);
+					nodes.Add(node);
+				}
+			}
+			var build = new Build(path, nodes);
 			return build;
 		}
 	}

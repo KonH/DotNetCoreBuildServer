@@ -15,8 +15,8 @@ namespace Server.Runtime {
 		Thread       _thread  = null;
 		BuildProcess _process = null;
 		
-		public BuildServer() {
-			_project = Project.Load();
+		public BuildServer(string projectPath) {
+			_project = Project.Load(projectPath);
 		}
 
 		public void InitBuild(Build build) {
@@ -42,6 +42,10 @@ namespace Server.Runtime {
 
 		void ProcessBuild() {
 			var nodes = _build.Nodes;
+			_process.StartBuild();
+			if (nodes.Count == 0) {
+				_process.Abort();
+			}
 			foreach (var node in nodes) {
 				var result = ProcessCommand(node);
 				if (!result) {

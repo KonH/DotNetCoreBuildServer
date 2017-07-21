@@ -10,11 +10,8 @@ namespace Server.BuildConfig {
 			Keys = keys;
 		}
 		
-		public static Project Load() {
-			var builder = new ConfigurationBuilder().
-				AddInMemoryCollection(new [] {
-					new KeyValuePair<string, string>("root", "/Users/konh/Projects/CSharp/BuildServerExample") 
-				});
+		public static Project Load(string path) {
+			var builder = new ConfigurationBuilder().AddJsonFile(path);
 			var config = builder.Build();
 			var keys = new Dictionary<string, string>();
 			foreach (var node in config.AsEnumerable()) {

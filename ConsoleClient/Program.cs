@@ -7,7 +7,7 @@ namespace ConsoleClient {
 	class Program {
 		
 		static void Main(string[] args) {
-			var server = new BuildServer();
+			var server = new BuildServer("project.json");
 			server.OnInitBuild += OnBuildInited;
 			var serverManager = new DirectServerManager(server);
 			while (serverManager.Alive) {

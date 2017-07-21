@@ -23,7 +23,7 @@ namespace Server.Runtime {
 		}
 		
 		public bool IsSuccess {
-			get { return IsDone && Tasks.All(task => task.IsSuccess); }
+			get { return IsDone && !IsAborted && Tasks.All(task => task.IsSuccess); }
 		}
 		
 		public bool IsAborted { get; private set; }
@@ -38,14 +38,15 @@ namespace Server.Runtime {
 		BuildTask FindTask(BuildNode node) {
 			return Tasks.FirstOrDefault(task => task.Node == node);
 		}
+
+		public void StartBuild() {
+			BuildStarted?.Invoke();
+		}
 		
 		public void StartTask(BuildNode node) {
 			var task = FindTask(node);
 			if (task != null) {
 				_curTask = task;
-				if (!IsStarted) {
-					BuildStarted?.Invoke();
-				}
 				task.Start();
 				TaskStarted?.Invoke(task);
 			}

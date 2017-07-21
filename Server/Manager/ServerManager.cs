@@ -28,7 +28,7 @@ namespace Server.Manager {
 		}
 
 		protected void StartBuild() {
-			var build = Build.Load();
+			var build = Build.Load("dev_build.json");
 			Server.InitBuild(build);
 			Server.StartBuild();
 		}
