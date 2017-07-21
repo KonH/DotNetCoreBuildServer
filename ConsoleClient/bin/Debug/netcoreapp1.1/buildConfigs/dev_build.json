@@ -1,0 +1,20 @@
+﻿{
+	"validate_project_root": {
+		"check_dir_exist": {"path": "{root}", "size_more": "1"}
+	},
+	"validate_sources": {
+		"check_file_exist": {"path": "{root}/sources.txt"}
+	}, 
+	"clean_project": {
+		"delete_file": {"path": "{root}/build.txt", "if_exist": "true"}
+	},
+	"show_project_root": { 
+		"run": {"path": "ls", "args": "{root}"}
+	}, 
+	"make_build": {
+		"run": {"path": "{root}/run.sh", "work_dir": "{root}", "log_file": "{root}/log.txt"}
+	}, 
+	"validate_build": {
+		"check_file_exist": {"path": "{root}/build.txt", "size_more": "1"}
+	}
+}

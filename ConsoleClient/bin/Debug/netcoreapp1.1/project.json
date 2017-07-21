@@ -1,6 +1,4 @@
 ﻿{
 	"root": "/Users/konh/Projects/CSharp/BuildServerExample",
-	"section": {
-		"test": "test_value"
-	}
+	"builds": "bin/Debug/netcoreapp1.1/buildConfigs"
 }
