@@ -39,8 +39,8 @@ namespace Server.Runtime {
 		Thread       _thread  = null;
 		BuildProcess _process = null;
 		
-		public BuildServer(string projectPath) {
-			_project = Project.Load(projectPath);
+		public BuildServer(params string[] projectPathes) {
+			_project = Project.Load(projectPathes);
 		}
 
 		public string FindBuildPath(string buildName) {

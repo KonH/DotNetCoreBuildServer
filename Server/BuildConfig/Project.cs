@@ -18,8 +18,11 @@ namespace Server.BuildConfig {
 			Keys = keys;
 		}
 		
-		public static Project Load(string path) {
-			var builder = new ConfigurationBuilder().AddJsonFile(path);
+		public static Project Load(string[] pathes) {
+			var builder = new ConfigurationBuilder();
+			foreach (var path in pathes) {
+				builder.AddJsonFile(path);
+			}
 			var config = builder.Build();
 			var keys = new Dictionary<string, string>();
 			foreach (var node in config.AsEnumerable()) {
