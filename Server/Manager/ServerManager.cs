@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Server.BuildConfig;
 using Server.Runtime;
 
@@ -43,7 +44,7 @@ namespace Server.Manager {
 			if (string.IsNullOrEmpty(buildPath)) {
 				return;
 			}
-			var build = Build.Load(buildPath);
+			var build = Build.Load(buildName, buildPath);
 			Server.InitBuild(build);
 			Server.StartBuild();
 		}
@@ -51,6 +52,17 @@ namespace Server.Manager {
 		protected void StopServer() {
 			Server.StopBuild();
 			Server = null;
+		}
+
+		protected Tuple<string, string[]> ConvertMessage(string message) {
+			var line = Console.ReadLine();
+			var allParts = line.Split(' ');
+			if (allParts.Length > 0) {
+				var request = allParts[0];
+				var requestArgs = allParts.Skip(1).ToArray();
+				return new Tuple<string, string[]>(request, requestArgs);
+			}
+			return new Tuple<string, string[]>(null, null);
 		}
 		
 		protected void Call(string request, params string[] args) {

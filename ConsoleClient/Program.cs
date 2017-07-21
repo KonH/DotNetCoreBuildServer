@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Linq;
+using Server.Integrations;
 using Server.Manager;
 using Server.Runtime;
+using Server.Writers;
 
 namespace ConsoleClient {
 	class Program {
+
+		static SlackManager _slackManager = null;
 		
 		static void Main(string[] args) {
 			var server = new BuildServer("project.json", "project_private.json");
+			_slackManager = server.AddSlackManager();
 			server.OnInitBuild += OnBuildInited;
-			var serverManager = new DirectServerManager(server);
-			while (serverManager.Alive) {
-				var line = Console.ReadLine();
-				var allParts = line.Split(' ');
-				if (allParts.Length > 0) {
-					var request = allParts[0];
-					var requestArgs = allParts.Skip(1).ToList();
-					serverManager.SendRequest(request, requestArgs.ToArray());
-				}
+			var slackServerManager = new SlackServerManager(_slackManager, server);
+			var directServerManager = new DirectServerManager(server);
+			while (directServerManager.Alive) {
+				directServerManager.SendRequest(Console.ReadLine());
 			}
 		}
 
 		static void OnBuildInited(BuildProcess build) {
-			var writer = new BuildResultWriter(build);
+			var consoleWriter = new ConsoleBuildWriter(build);
+			var slackWriter = new SlackBuildWriter(_slackManager, build);
 		}
 	}
 }

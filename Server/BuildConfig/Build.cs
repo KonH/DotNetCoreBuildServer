@@ -13,7 +13,7 @@ namespace Server.BuildConfig {
 			Nodes = nodes.ToList();
 		}
 		
-		public static Build Load(string path) {
+		public static Build Load(string name, string path) {
 			var builder = new ConfigurationBuilder().AddJsonFile(path);
 			var config = builder.Build();
 			var nodes = new List<BuildNode>();
@@ -31,7 +31,7 @@ namespace Server.BuildConfig {
 					nodes.Add(node);
 				}
 			}
-			var build = new Build(path, nodes);
+			var build = new Build(name, nodes);
 			return build;
 		}
 	}

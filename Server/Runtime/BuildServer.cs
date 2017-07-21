@@ -17,10 +17,12 @@ namespace Server.Runtime {
 			return file.Name.Substring(0, file.Name.Length - ext.Length);
 		}
 		
+		public Project Project { get; }
+		
 		public Dictionary<string, string> Builds {
 			get {
 				var dict = new Dictionary<string, string>();
-				var buildsPath = _project.BuildsRoot;
+				var buildsPath = Project.BuildsRoot;
 				if (Directory.Exists(buildsPath)) {
 					var files = Directory.EnumerateFiles(buildsPath, "*.json");
 					foreach (var filePath in files) {
@@ -33,14 +35,12 @@ namespace Server.Runtime {
 			}
 		}
 		
-		readonly Project _project = null;
-		
 		Build        _build   = null;
 		Thread       _thread  = null;
 		BuildProcess _process = null;
 		
 		public BuildServer(params string[] projectPathes) {
-			_project = Project.Load(projectPathes);
+			Project = Project.Load(projectPathes);
 		}
 
 		public string FindBuildPath(string buildName) {
@@ -115,7 +115,7 @@ namespace Server.Runtime {
 		bool ProcessCommand(BuildNode node) {
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
-			var runtimeArgs = CreateRuntimeArgs(_project, node);
+			var runtimeArgs = CreateRuntimeArgs(Project, node);
 			var result = command.Execute(runtimeArgs);
 			_process.DoneTask(result.IsSuccess, result.Message);
 			return result.IsSuccess;

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 
 namespace Server.BuildConfig {
-	class Project {
+	public class Project {
 
 		public Dictionary<string, string> Keys { get; }
 
