@@ -1,30 +1,43 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
-using Server.Runtime;
 
-namespace Server {
+namespace Server.Runtime {
 	public class BuildServer {
 
-		Project      _project = null;
+		public event Action<BuildProcess> OnInitBuild;
+		
+		readonly Project _project = null;
+		
 		Build        _build   = null;
+		Thread       _thread  = null;
 		BuildProcess _process = null;
 		
 		public BuildServer() {
 			_project = Project.Load();
 		}
 
-		public BuildProcess InitBuild(Build build) {
+		public void InitBuild(Build build) {
+			if (_process != null) {
+				return;
+			}
 			_build = build;
 			_process = new BuildProcess(build);
-			return _process;
+			OnInitBuild?.Invoke(_process);
 		}
 
 		public void StartBuild() {
-			var thread = new Thread(ProcessBuild);
-			thread.Start();
+			if (_process == null) {
+				return;
+			}
+			_thread = new Thread(ProcessBuild);
+			_thread.Start();
+		}
+
+		public void StopBuild() {
+			_process?.Abort();
 		}
 
 		void ProcessBuild() {
@@ -33,9 +46,12 @@ namespace Server {
 				var result = ProcessCommand(node);
 				if (!result) {
 					_process.Abort();
+				}
+				if (_process.IsAborted) {
 					break;
 				}
 			}
+			_process = null;
 		}
 
 		string ConvertArgValue(Project project, string value) {
@@ -63,7 +79,7 @@ namespace Server {
 			var command = CommandFactory.Create(node);
 			var runtimeArgs = CreateRuntimeArgs(_project, node);
 			var result = command.Execute(runtimeArgs);
-			_process.DoneTask(node, result.IsSuccess, result.Message);
+			_process.DoneTask(result.IsSuccess, result.Message);
 			return result.IsSuccess;
 		}
 	}

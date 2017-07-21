@@ -26,6 +26,10 @@ namespace Server.Runtime {
 			get { return IsDone && Tasks.All(task => task.IsSuccess); }
 		}
 		
+		public bool IsAborted { get; private set; }
+
+		BuildTask _curTask = null;
+		
 		public BuildProcess(Build build) {
 			Name  = build.Name;
 			Tasks = build.Nodes.Select(node => new BuildTask(node)).ToList();
@@ -38,6 +42,7 @@ namespace Server.Runtime {
 		public void StartTask(BuildNode node) {
 			var task = FindTask(node);
 			if (task != null) {
+				_curTask = task;
 				if (!IsStarted) {
 					BuildStarted?.Invoke();
 				}
@@ -46,19 +51,23 @@ namespace Server.Runtime {
 			}
 		}
 
-		public void DoneTask(BuildNode node, bool isSuccess, string message) {
-			var task = FindTask(node);
+		public void DoneTask(bool isSuccess, string message) {
+			var task = _curTask;
 			if (task != null) {
 				task.Done(isSuccess, message);
 				TaskDone?.Invoke(task);
-				if (IsDone) {
+				_curTask = null;
+				if (IsDone || IsAborted) {
 					BuildDone?.Invoke();
 				}
 			}
 		}
 
 		public void Abort() {
-			BuildDone?.Invoke();
+			IsAborted = true;
+			if (_curTask == null) {
+				BuildDone?.Invoke();
+			}
 		}
 	}
 }

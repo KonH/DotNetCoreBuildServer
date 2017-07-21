@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Configuration;
 
-namespace Server {
+namespace Server.BuildConfig {
 	class Project {
 
 		public Dictionary<string, string> Keys { get; }
