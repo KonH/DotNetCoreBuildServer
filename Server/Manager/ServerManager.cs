@@ -46,7 +46,8 @@ namespace Server.Manager {
 			}
 			var build = Build.Load(buildName, buildPath);
 			Server.InitBuild(build);
-			Server.StartBuild();
+			var buildArgs = args.Skip(1).ToArray();
+			Server.StartBuild(buildArgs);
 		}
 
 		protected void StopServer() {

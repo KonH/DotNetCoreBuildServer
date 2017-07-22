@@ -18,6 +18,7 @@ namespace ConsoleClient {
 				var slackServerManager = new SlackServerManager(_slackManager, server);
 			}
 			var directServerManager = new DirectServerManager(server);
+			directServerManager.SendRequest("build dev_build 1.0.1");
 			while (directServerManager.Alive) {
 				directServerManager.SendRequest(Console.ReadLine());
 			}
