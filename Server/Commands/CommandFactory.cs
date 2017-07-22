@@ -8,8 +8,10 @@ namespace Server.Commands {
 			{"print", new PrintCommand()},
 			{"check_dir_exist", new CheckDirExistCommand()},
 			{"delete_dir", new DeleteDirCommand()},
+			{"copy_dir", new CopyDirCommand()},
 			{"check_file_exist", new CheckFileExistCommand()},
 			{"delete_file", new DeleteFileCommand()},
+			{"copy_file", new CopyFileCommand()},
 			{"run", new RunCommand()}
 		};
 		

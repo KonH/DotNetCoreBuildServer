@@ -69,7 +69,7 @@
 				"run": {
 					"path": "{root}/git_repo/run.sh",
 					"work_dir": "{root}/git_repo",
-					"log_file": "{root}/log.txt"
+					"log_file": "{root}/build_log.txt"
 				}
 			}
 		},
@@ -78,6 +78,55 @@
 				"check_file_exist": {
 					"path": "{root}/build.txt",
 					"size_more": "1"
+				}
+			}
+		},
+		{
+			"clean_upload": {
+				"run": {
+					"path": "svn",
+					"args": "cleanup",
+					"work_dir": "{root}/local_svn",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"update_upload": {
+				"run": {
+					"path": "svn",
+					"args": "update",
+					"work_dir": "{root}/local_svn",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"copy_to_upload": {
+				"copy_file": {
+					"from": "{root}/build.txt",
+					"to": "{root}/local_svn"
+				}
+			}
+		},
+		{
+			"add_build": {
+				"run": {
+					"path": "svn",
+					"args": "add . --force",
+					"work_dir": "{root}/local_svn",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"upload_build": {
+				"run": {
+					"path": "svn",
+					"args": "commit -m \"Build for {tag}.\"",
+					"work_dir": "{root}/local_svn",
+					"error_filter": "error;Commit failed",
+					"log_file": "{root}/upload_log.txt"
 				}
 			}
 		}

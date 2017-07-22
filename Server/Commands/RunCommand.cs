@@ -41,16 +41,18 @@ namespace Server.Commands {
 					ReadOutputAsync(process.StandardError, logStream);
 					process.WaitForExit();
 				}
-				string resultMessage = null;
-				if (!string.IsNullOrEmpty(logFile)) {
-					resultMessage = $"Log saved to {logFile}.";
-				} else {
-					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
-					resultMessage = _inMemoryLog;
-				}
+				
 				string errorFilter = null;
 				args.TryGetValue("error_filter", out errorFilter);
-				return CheckCommandResult(errorFilter, resultMessage);
+				if (!string.IsNullOrEmpty(logFile)) {
+					var msg = $"Log saved to {logFile}.";
+					var logContent = File.ReadAllText(logFile);
+					return CheckCommandResult(errorFilter, logContent, msg);
+				} else {
+					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
+					var msg = _inMemoryLog;
+					return CheckCommandResult(errorFilter, msg, msg);
+				}
 			}
 			catch (Exception e) {
 				return CommandResult.Fail($"Failed to run process at \"{path}\": \"{e.ToString()}\"");
@@ -80,16 +82,25 @@ namespace Server.Commands {
 
 		bool ContainsError(string errorFilter, string message) {
 			if (!string.IsNullOrEmpty(errorFilter)) {
+				if (errorFilter.Contains(";")) {
+					var errorParts = errorFilter.Split(';');
+					foreach (var part in errorParts) {
+						if (ContainsError(part, message)) {
+							return true;
+						}
+					}
+					return false;
+				}
 				return message.Contains(errorFilter);
 			}
 			return false;
 		}
 		
-		CommandResult CheckCommandResult(string errorFilter, string message) {
+		CommandResult CheckCommandResult(string errorFilter, string messageToCheck, string messageToShow) {
 			return
-				ContainsError(errorFilter, message) ?
-					CommandResult.Fail(message) : 
-					CommandResult.Success(message);
+				ContainsError(errorFilter, messageToCheck) ?
+					CommandResult.Fail(messageToShow) : 
+					CommandResult.Success(messageToShow);
 		}
 	}
 }
