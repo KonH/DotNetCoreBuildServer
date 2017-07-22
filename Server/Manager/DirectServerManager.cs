@@ -14,8 +14,11 @@ namespace Server.Manager {
 			}
 		}
 		
-		public void SendRequest(string request, params string[] args) {
-			Call(request, args);
+		public void SendRequest(string message) {
+			var request = ConvertMessage(message);
+			if (!string.IsNullOrEmpty(request.Item1)) {
+				Call(request.Item1, request.Item2);
+			}
 		}
 	}
 }

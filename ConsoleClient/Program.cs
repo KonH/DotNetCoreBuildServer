@@ -11,10 +11,12 @@ namespace ConsoleClient {
 		static SlackManager _slackManager = null;
 		
 		static void Main(string[] args) {
-			var server = new BuildServer("project.json", "project_private.json");
+			var server = new BuildServer("project.json");//, "project_private.json");
 			_slackManager = server.AddSlackManager();
 			server.OnInitBuild += OnBuildInited;
-			var slackServerManager = new SlackServerManager(_slackManager, server);
+			if (_slackManager != null) {
+				var slackServerManager = new SlackServerManager(_slackManager, server);
+			}
 			var directServerManager = new DirectServerManager(server);
 			while (directServerManager.Alive) {
 				directServerManager.SendRequest(Console.ReadLine());
@@ -23,7 +25,9 @@ namespace ConsoleClient {
 
 		static void OnBuildInited(BuildProcess build) {
 			var consoleWriter = new ConsoleBuildWriter(build);
-			var slackWriter = new SlackBuildWriter(_slackManager, build);
+			if (_slackManager != null) {
+				var slackWriter = new SlackBuildWriter(_slackManager, build);
+			}
 		}
 	}
 }

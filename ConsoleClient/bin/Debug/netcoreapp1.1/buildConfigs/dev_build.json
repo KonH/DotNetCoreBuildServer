@@ -1,20 +1,82 @@
 ﻿{
-	"validate_project_root": {
-		"check_dir_exist": {"path": "{root}", "size_more": "1"}
-	},
-	"validate_sources": {
-		"check_file_exist": {"path": "{root}/sources.txt"}
-	}, 
-	"clean_project": {
-		"delete_file": {"path": "{root}/build.txt", "if_exist": "true"}
-	},
-	"show_project_root": { 
-		"run": {"path": "ls", "args": "{root}"}
-	}, 
-	"make_build": {
-		"run": {"path": "{root}/run.sh", "work_dir": "{root}", "log_file": "{root}/log.txt"}
-	}, 
-	"validate_build": {
-		"check_file_exist": {"path": "{root}/build.txt", "size_more": "1"}
-	}
+	"tasks": [
+		{
+			"validate_project_root": {
+				"check_dir_exist": {
+					"path": "{root}",
+					"size_more": "1"
+				}
+			}
+		},
+		{
+			"clean_repo": {
+				"run": {
+					"path": "git",
+					"args": "reset --hard",
+					"work_dir": "{root}/git_repo",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"pull_last_repo": {
+				"run": {
+					"path": "git",
+					"args": "pull",
+					"work_dir": "{root}/git_repo",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"checkout_to_commit": {
+				"run": {
+					"path": "git",
+					"args": "checkout {tag}",
+					"work_dir": "{root}/git_repo",
+					"error_filter": "error"
+				}
+			}
+		},
+		{
+			"validate_sources": {
+				"check_file_exist": {
+					"path": "{root}/git_repo/sources.txt"
+				}
+			}
+		},
+		{
+			"clean_project": {
+				"delete_file": {
+					"path": "{root}/build.txt",
+					"if_exist": "true"
+				}
+			}
+		},
+		{
+			"show_project_root": {
+				"run": {
+					"path": "ls",
+					"args": "{root}"
+				}
+			}
+		},
+		{
+			"make_build": {
+				"run": {
+					"path": "{root}/git_repo/run.sh",
+					"work_dir": "{root}/git_repo",
+					"log_file": "{root}/log.txt"
+				}
+			}
+		},
+		{
+			"validate_build": {
+				"check_file_exist": {
+					"path": "{root}/build.txt",
+					"size_more": "1"
+				}
+			}
+		}
+	]
 }

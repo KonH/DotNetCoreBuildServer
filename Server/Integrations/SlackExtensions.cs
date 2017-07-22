@@ -8,8 +8,11 @@ namespace Server.Integrations {
 			server.Project.Keys.TryGetValue("slack_token", out token);
 			string hub = null;
 			server.Project.Keys.TryGetValue("slack_hub", out hub);
-			var slackManager = new SlackManager(token, hub);
-			return slackManager;
+			if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(hub)) {
+				var slackManager = new SlackManager(token, hub);
+				return slackManager;
+			}
+			return null;
 		}
 	}
 }
