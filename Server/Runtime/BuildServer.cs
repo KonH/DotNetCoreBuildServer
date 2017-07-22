@@ -35,12 +35,15 @@ namespace Server.Runtime {
 			}
 		}
 
+		public string Name { get; }
+		
 		string[]     _buildArgs = null;
 		Build        _build     = null;
 		Thread       _thread    = null;
 		BuildProcess _process   = null;
 		
-		public BuildServer(params string[] projectPathes) {
+		public BuildServer(string name, params string[] projectPathes) {
+			Name = name;
 			Project = Project.Load(projectPathes);
 		}
 

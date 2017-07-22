@@ -11,14 +11,18 @@ namespace ConsoleClient {
 		static SlackManager _slackManager = null;
 		
 		static void Main(string[] args) {
-			var server = new BuildServer("project.json");//, "project_private.json");
+			if (args.Length < 1) {
+				return;
+			}
+			var serverName = args[0];
+			var serverArgs = args.Skip(1).ToArray();
+			var server = new BuildServer(serverName, serverArgs);
 			_slackManager = server.AddSlackManager();
 			server.OnInitBuild += OnBuildInited;
 			if (_slackManager != null) {
 				var slackServerManager = new SlackServerManager(_slackManager, server);
 			}
 			var directServerManager = new DirectServerManager(server);
-			directServerManager.SendRequest("build dev_build 1.0.1");
 			while (directServerManager.Alive) {
 				directServerManager.SendRequest(Console.ReadLine());
 			}

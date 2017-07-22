@@ -9,7 +9,7 @@ namespace Server.Integrations {
 			string hub = null;
 			server.Project.Keys.TryGetValue("slack_hub", out hub);
 			if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(hub)) {
-				var slackManager = new SlackManager(token, hub);
+				var slackManager = new SlackManager(server.Name, token, hub);
 				return slackManager;
 			}
 			return null;
