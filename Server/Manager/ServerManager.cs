@@ -56,8 +56,7 @@ namespace Server.Manager {
 		}
 
 		protected Tuple<string, string[]> ConvertMessage(string message) {
-			var line = Console.ReadLine();
-			var allParts = line.Split(' ');
+			var allParts = message.Split(' ');
 			if (allParts.Length > 0) {
 				var request = allParts[0];
 				var requestArgs = allParts.Skip(1).ToArray();

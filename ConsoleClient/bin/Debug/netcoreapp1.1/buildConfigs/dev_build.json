@@ -1,4 +1,7 @@
 ﻿{
+	"args": [
+		"tag"	
+	],
 	"tasks": [
 		{
 			"validate_project_root": {
@@ -19,10 +22,10 @@
 			}
 		},
 		{
-			"pull_last_repo": {
+			"fetch_last_repo": {
 				"run": {
 					"path": "git",
-					"args": "pull",
+					"args": "fetch --all",
 					"work_dir": "{root}/git_repo",
 					"error_filter": "error"
 				}
