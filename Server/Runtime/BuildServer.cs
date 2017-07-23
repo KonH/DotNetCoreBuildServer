@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
+using Server.Integrations;
 
 namespace Server.Runtime {
 	public class BuildServer {
 
+		public event Action               OnStatusRequest;
 		public event Action<BuildProcess> OnInitBuild;
+		public event Action               OnStop;
 
 		string ConvertToBuildName(FileInfo file) {
 			var ext = file.Extension;
@@ -34,6 +35,8 @@ namespace Server.Runtime {
 				return dict;
 			}
 		}
+		
+		public List<IService> Services { get; private set; }
 
 		public string Name { get; }
 		
@@ -42,9 +45,19 @@ namespace Server.Runtime {
 		Thread       _thread    = null;
 		BuildProcess _process   = null;
 		
-		public BuildServer(string name, params string[] projectPathes) {
+		public BuildServer(string name, IEnumerable<IService> services, params string[] projectPathes) {
 			Name = name;
 			Project = Project.Load(projectPathes);
+			InitServices(services, Project);
+		}
+
+		void InitServices(IEnumerable<IService> services, Project project) {
+			Services = new List<IService>();
+			foreach (var service in services) {
+				if (service.TryInit(this, project)) {
+					Services.Add(service);
+				}
+			}
 		}
 
 		public string FindBuildPath(string buildName) {
@@ -132,6 +145,16 @@ namespace Server.Runtime {
 			var result = command.Execute(runtimeArgs);
 			_process.DoneTask(result.IsSuccess, result.Message);
 			return result.IsSuccess;
+		}
+
+		public void RequestStatus() {
+			OnStatusRequest?.Invoke();
+		}
+
+		public void StopServer() {
+			StopBuild();
+			while (_process != null) {}
+			OnStop?.Invoke();
 		}
 	}
 }

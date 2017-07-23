@@ -1,17 +1,21 @@
 ﻿using Server.Integrations;
 using Server.Runtime;
 
-namespace Server.Writers {
-	public class SlackBuildWriter:BaseBuildWriter {
+namespace Server.Views {
+	public class SlackServerView:BaseServerView {
+		
+		readonly SlackService _service = null;
 
-		readonly SlackManager _manager = null;
-
-		public SlackBuildWriter(SlackManager manager, BuildProcess buildProcess) : base(buildProcess) {
-			_manager = manager;
+		public SlackServerView(SlackService service, BuildServer server) : base(server) {
+			_service = service;
+		}
+		
+		protected override void OnStatusRequest() {
+			_service.SendMessage(GetStatusMessage());
 		}
 		
 		protected override void OnBuildProcessStarted() {
-			_manager.SendMessage($"Build started: {Process.Name}");
+			_service.SendMessage($"Build started: {Process.Name}");
 		}
 
 		protected override void OnTaskStarted(BuildTask buildTask) {}
@@ -29,7 +33,8 @@ namespace Server.Writers {
 				}
 			}
 			message += "```";
-			_manager.SendMessage(message);
+			_service.SendMessage(message);
+			base.OnBuildProcessDone();
 		}
 	}
 }

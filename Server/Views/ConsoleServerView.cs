@@ -1,12 +1,15 @@
 ﻿using System;
 using Server.Runtime;
-using Server.Writers;
 
-namespace ConsoleClient {
-	public class ConsoleBuildWriter:BaseBuildWriter {
+namespace Server.Views {
+	public class ConsoleServerView:BaseServerView {
 		
-		public ConsoleBuildWriter(BuildProcess buildProcess):base(buildProcess) { }
+		public ConsoleServerView(BuildServer server) : base(server) { }
 
+		protected override void OnStatusRequest() {
+			Console.Write(GetStatusMessage());
+		}
+		
 		protected override void OnBuildProcessStarted() {
 			Console.WriteLine();
 			Console.WriteLine($"Build started: {Process.Name}");
@@ -33,6 +36,7 @@ namespace ConsoleClient {
 					Console.WriteLine($"{task.Node.Name} (skip)");
 				}
 			}
+			base.OnBuildProcessDone();
 		}
 	}
 }
