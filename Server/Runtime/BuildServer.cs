@@ -19,6 +19,7 @@ namespace Server.Runtime {
 		}
 
 		public event Action               OnStatusRequest;
+		public event Action               OnHelpRequest;
 		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
 
@@ -176,6 +177,10 @@ namespace Server.Runtime {
 			StopBuild();
 			while (_process != null) {}
 			OnStop?.Invoke();
+		}
+
+		public void RequestHelp() {
+			OnHelpRequest?.Invoke();
 		}
 	}
 }

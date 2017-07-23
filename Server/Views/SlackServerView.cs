@@ -1,4 +1,5 @@
-﻿using Server.Integrations;
+﻿using System;
+using Server.Integrations;
 using Server.Runtime;
 
 namespace Server.Views {
@@ -8,6 +9,10 @@ namespace Server.Views {
 
 		public SlackServerView(SlackService service, BuildServer server) : base(server) {
 			_service = service;
+		}
+
+		protected override void OnHelpRequest() {
+			_service.SendMessage(GetHelpMessage());
 		}
 		
 		protected override void OnStatusRequest() {

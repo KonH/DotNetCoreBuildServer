@@ -11,10 +11,22 @@ namespace Server.Views {
 		protected BaseServerView(BuildServer server) {
 			Server = server;
 			Server.OnInitBuild     += OnInitBuild;
+			Server.OnHelpRequest   += OnHelpRequest;
 			Server.OnStatusRequest += OnStatusRequest;
 			Server.OnStop          += OnStop;
 		}
 
+		protected string GetHelpMessage() {
+			var message = "Commands:\n";
+			message += "- \"status\" - current server status\n";
+			message += "- \"stop\" - stop current build, if it is started\n";
+			message += "- \"build arg0 arg1 ... argN\" - start build with given parameters\n";
+			message += "- \"help\" - show this message\n";
+			return message;
+		}
+
+		protected abstract void OnHelpRequest();
+		
 		protected string GetStatusMessage() {
 			var message = $"{Server.ServiceName}\n";
 			message += $"Is busy: {Process != null}\n";

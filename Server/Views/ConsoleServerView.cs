@@ -9,6 +9,11 @@ namespace Server.Views {
 		protected override void OnStatusRequest() {
 			Console.Write(GetStatusMessage());
 		}
+
+		protected override void OnHelpRequest() {
+			Console.WriteLine();
+			Console.WriteLine(GetHelpMessage());
+		}
 		
 		protected override void OnBuildProcessStarted() {
 			Console.WriteLine();

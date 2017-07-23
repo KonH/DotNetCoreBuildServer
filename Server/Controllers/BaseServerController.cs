@@ -13,7 +13,8 @@ namespace Server.Controllers {
 			new Dictionary<string, Action<RequestArgs>>();
 		
 		protected BaseServerController(BuildServer server) {
-			AddHandler("status", RetrieveStatus);
+			AddHandler("help",   RequestHelp);
+			AddHandler("status", RequestStatus);
 			AddHandler("build",  StartBuild);
 			AddHandler("stop",   StopServer);
 			Server = server;
@@ -26,8 +27,12 @@ namespace Server.Controllers {
 		void AddHandler(string name, Action handler) {
 			_handlers.Add(name, (_) => handler.Invoke());
 		}
+
+		void RequestHelp() {
+			Server.RequestHelp();
+		}
 		
-		void RetrieveStatus() {
+		void RequestStatus() {
 			Server.RequestStatus();
 		}
 		
@@ -61,6 +66,7 @@ namespace Server.Controllers {
 		
 		protected void Call(ServerRequest request) {
 			if (!request.IsValid) {
+				_handlers["help"]?.Invoke(request.Args);
 				return;
 			}
 			Action<RequestArgs> handler = null;
