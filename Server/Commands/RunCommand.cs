@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Server.Commands {
 	public class RunCommand:ICommand {
@@ -44,14 +45,18 @@ namespace Server.Commands {
 				
 				string errorFilter = null;
 				args.TryGetValue("error_filter", out errorFilter);
+				string resultRegex = null;
+				args.TryGetValue("result_regex", out resultRegex);
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
 					var logContent = File.ReadAllText(logFile);
-					return CheckCommandResult(errorFilter, logContent, msg);
+					var result = GetResultMessage(resultRegex, logContent);
+					return CheckCommandResult(errorFilter, logContent, msg, result);
 				} else {
 					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
 					var msg = _inMemoryLog;
-					return CheckCommandResult(errorFilter, msg, msg);
+					var result = GetResultMessage(resultRegex, msg);
+					return CheckCommandResult(errorFilter, msg, msg, result);
 				}
 			}
 			catch (Exception e) {
@@ -59,6 +64,16 @@ namespace Server.Commands {
 			}
 		}
 
+		string GetResultMessage(string resultRegex, string message) {
+			if (!string.IsNullOrEmpty(resultRegex)) {
+				var regex = new Regex(resultRegex);
+				var match = regex.Match(message);
+				var value = match.Value;
+				return value;
+			}
+			return "";
+		}
+		
 		FileStream OpenLogFile(string logFile) {
 			if (logFile != null) {
 				return File.OpenWrite(logFile);
@@ -96,11 +111,11 @@ namespace Server.Commands {
 			return false;
 		}
 		
-		CommandResult CheckCommandResult(string errorFilter, string messageToCheck, string messageToShow) {
+		CommandResult CheckCommandResult(string errorFilter, string messageToCheck, string messageToShow, string result) {
 			return
 				ContainsError(errorFilter, messageToCheck) ?
 					CommandResult.Fail(messageToShow) : 
-					CommandResult.Success(messageToShow);
+					CommandResult.Success(messageToShow, result);
 		}
 	}
 }

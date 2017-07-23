@@ -105,7 +105,7 @@
 			"copy_to_upload": {
 				"copy_file": {
 					"from": "{root}/build.txt",
-					"to": "{root}/local_svn"
+					"to": "{root}/local_svn/build.txt"
 				}
 			}
 		},
@@ -126,7 +126,15 @@
 					"args": "commit -m \"Build for {tag}.\"",
 					"work_dir": "{root}/local_svn",
 					"error_filter": "error;Commit failed",
-					"log_file": "{root}/upload_log.txt"
+					"log_file": "{root}/upload_log.txt",
+					"result_regex": "(?<=Committed revision )([0-9]*)"
+				}
+			}
+		},
+		{
+			"build_report": {
+				"print": {
+					"message": "Build result rev.{upload_build:result}"
 				}
 			}
 		}

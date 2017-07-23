@@ -59,6 +59,8 @@ namespace Server.Runtime {
 		Thread       _thread    = null;
 		BuildProcess _process   = null;
 		
+		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
+		
 		DateTime _curTime => DateTime.Now;
 		
 		public BuildServer(string name, IEnumerable<IService> services, params string[] projectPathes) {
@@ -117,23 +119,30 @@ namespace Server.Runtime {
 			_build     = null;
 			_thread    = null;
 			_process   = null;
+
+			_taskStates = new Dictionary<string, string>();
 		}
 
+		string TryReplace(string message, string key, string value) {
+			var keyFormat = string.Format("{{{0}}}", key);
+			if (message.Contains(keyFormat)) {
+				return message.Replace(keyFormat, value);
+			}
+			return message;
+		}
+		
 		string ConvertArgValue(Project project, Build build, string[] buildArgs, string value) {
 			var result = value;
 			foreach (var key in project.Keys) {
-				var keyFormat = string.Format("{{{0}}}", key.Key);
-				if (result.Contains(keyFormat)) {
-					result = result.Replace(keyFormat, key.Value);
-				}
+				result = TryReplace(result, key.Key, key.Value);
 			}
 			for (int i = 0; i < build.Args.Count; i++) {
 				var argName = build.Args[i];
 				var argValue = buildArgs[i];
-				var argNameFormat = string.Format("{{{0}}}", argName);
-				if (result.Contains(argNameFormat)) {
-					result = result.Replace(argNameFormat, argValue);
-				}
+				result = TryReplace(result, argName, argValue);
+			}
+			foreach (var state in _taskStates) {
+				result = TryReplace(result, state.Key, state.Value);
 			}
 			return result;
 		}
@@ -165,10 +174,21 @@ namespace Server.Runtime {
 			var command = CommandFactory.Create(node);
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			var result = command.Execute(runtimeArgs);
-			_process.DoneTask(_curTime, result.IsSuccess, result.Message);
+			_process.DoneTask(_curTime, result.IsSuccess, result.Message, result.Result);
+			AddTaskState(node.Name, result);
 			return result.IsSuccess;
 		}
 
+		void AddTaskState(string taskName, CommandResult result) {
+			AddTaskState(taskName, "message", result.Message);
+			AddTaskState(taskName, "result", result.Result);
+		}
+
+		void AddTaskState(string taskName, string key, string value) {
+			var fullKey = $"{taskName}:{key}";
+			_taskStates.Add(fullKey, value);
+		}
+		
 		public void RequestStatus() {
 			OnStatusRequest?.Invoke();
 		}

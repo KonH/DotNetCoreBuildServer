@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Server.Runtime;
 
 namespace Server.Views {
@@ -28,19 +29,19 @@ namespace Server.Views {
 		protected override void OnTaskDone(BuildTask buildTask) {
 			Console.WriteLine();
 			Console.WriteLine($"Task done: {buildTask.Node.Name}");
-			Console.WriteLine($"(success: {buildTask.IsSuccess}, message: \"{buildTask.Message}\")");
+			Console.WriteLine(GetTaskInfo(buildTask));
 		}
 
 		protected override void OnBuildProcessDone() {
 			Console.WriteLine();
 			Console.WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
 			Console.WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
-			foreach (var task in Process.Tasks) {
-				if (task.IsStarted) {
-					Console.WriteLine($"{task.Node.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");
-				} else {
-					Console.WriteLine($"{task.Node.Name} (skip)");
-				}
+			var lastTask = Process.Tasks.Last();
+			if (lastTask.IsSuccess) {
+				Console.WriteLine("Last task message:");
+				Console.WriteLine(lastTask.Message);
+			} else {
+				Console.WriteLine(GetTasksInfo(Process.Tasks));
 			}
 			base.OnBuildProcessDone();
 		}

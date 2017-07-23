@@ -1,4 +1,5 @@
-﻿using Server.Runtime;
+﻿using System.Collections.Generic;
+using Server.Runtime;
 
 namespace Server.Views {
 	public abstract class BaseServerView {
@@ -96,6 +97,30 @@ namespace Server.Views {
 
 		void OnStop() {
 			Server = null;
+		}
+
+		protected string GetTaskInfo(BuildTask task) {
+			if (task.IsStarted) {
+				var msg = $"{task.Node.Name} (success: {task.IsSuccess})";
+				if (!string.IsNullOrEmpty(task.Message)) {
+					msg += $", message: \"{task.Message}\"";
+				}
+				if (!string.IsNullOrEmpty(task.Result)) {
+					msg += $", result: \"{task.Result}\"";
+				}
+				msg += ")";
+				return msg;
+			} else {
+				return $"{task.Node.Name} (skip)";
+			}
+		}
+
+		protected string GetTasksInfo(List<BuildTask> tasks) {
+			var msg = "";
+			foreach (var task in tasks) {
+				msg += $"{GetTaskInfo(task)}\n";
+			}
+			return msg;
 		}
 	}
 }

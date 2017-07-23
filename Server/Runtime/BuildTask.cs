@@ -8,6 +8,7 @@ namespace Server.Runtime {
 		public bool      IsDone    { get; private set; }
 		public bool      IsSuccess { get; private set; }
 		public string    Message   { get; private set; }
+		public string    Result    { get; private set; }
 		
 		public BuildTask(BuildNode node) {
 			Node = node;
@@ -17,10 +18,11 @@ namespace Server.Runtime {
 			IsStarted = true;
 		}
 
-		public void Done(bool isSuccess, string message) {
+		public void Done(bool isSuccess, string message, string result) {
 			IsDone    = true;
 			IsSuccess = isSuccess;
 			Message   = message;
+			Result    = result;
 		}
 	}
 }

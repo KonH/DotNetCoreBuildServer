@@ -57,10 +57,10 @@ namespace Server.Runtime {
 			}
 		}
 
-		public void DoneTask(DateTime time, bool isSuccess, string message) {
+		public void DoneTask(DateTime time, bool isSuccess, string message, string result) {
 			var task = _curTask;
 			if (task != null) {
-				task.Done(isSuccess, message);
+				task.Done(isSuccess, message, result);
 				TaskDone?.Invoke(task);
 				_curTask = null;
 				if (IsDone || IsAborted) {
