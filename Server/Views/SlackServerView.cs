@@ -12,6 +12,10 @@ namespace Server.Views {
 			_service = service;
 		}
 
+		protected override void OnCommonError(string message) {
+			_service.SendMessage($"Error: {message}");
+		}
+		
 		protected override void OnHelpRequest() {
 			_service.SendMessage(GetHelpMessage());
 		}

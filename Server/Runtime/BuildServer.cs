@@ -19,6 +19,7 @@ namespace Server.Runtime {
 		}
 
 		public event Action               OnStatusRequest;
+		public event Action<string>       OnCommonError; 
 		public event Action               OnHelpRequest;
 		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
@@ -201,6 +202,10 @@ namespace Server.Runtime {
 
 		public void RequestHelp() {
 			OnHelpRequest?.Invoke();
+		}
+
+		public void RaiseCommonError(string message) {
+			OnCommonError?.Invoke(message);
 		}
 	}
 }

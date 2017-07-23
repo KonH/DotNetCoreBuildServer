@@ -38,11 +38,18 @@ namespace Server.Controllers {
 		
 		protected void StartBuild(RequestArgs args) {
 			if ((args == null) || (args.Count == 0)) {
+				Server.RaiseCommonError("StartBuild: No arguments!");
 				return;
 			}
 			var buildName = args[0];
 			Build build = null;
 			if (!Server.Builds.TryGetValue(buildName, out build)) {
+				Server.RaiseCommonError("StartBuild: Wrong build name!");
+				return;
+			}
+			if (args.Count - 1 < build.Args.Count) {
+				Server.RaiseCommonError(
+					$"StartBuild: build required {build.Args.Count} args, but {args.Count - 1} args is provided!");
 				return;
 			}
 			Server.InitBuild(build);

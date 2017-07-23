@@ -11,12 +11,15 @@ namespace Server.Views {
 		
 		protected BaseServerView(BuildServer server) {
 			Server = server;
+			Server.OnCommonError   += OnCommonError;
 			Server.OnInitBuild     += OnInitBuild;
 			Server.OnHelpRequest   += OnHelpRequest;
 			Server.OnStatusRequest += OnStatusRequest;
 			Server.OnStop          += OnStop;
 		}
 
+		protected abstract void OnCommonError(string message);
+		
 		protected string GetHelpMessage() {
 			var message = "Commands:\n";
 			message += "- \"status\" - current server status\n";
