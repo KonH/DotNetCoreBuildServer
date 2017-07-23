@@ -73,6 +73,8 @@ Any command has "message" and "result", "message" is full output, "result" can c
 
 Full list of commands you can see at **Tasks** section.
 
+Also, you can look at full example [here](https://github.com/KonH/DotNetCoreBuildServer/blob/master/ConsoleClient/bin/Debug/netcoreapp1.1/buildConfigs/dev_build.json). 
+
 ## Start
 
 You need to [dotnet](https://www.microsoft.com/net/download/core) runtime installed. Next steps is osX based, but Windows is also supported:
