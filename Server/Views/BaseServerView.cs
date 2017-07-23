@@ -16,7 +16,8 @@ namespace Server.Views {
 		}
 
 		protected string GetStatusMessage() {
-			var message = $"Is busy: {Process != null}\n";
+			var message = $"{Server.ServiceName}\n";
+			message += $"Is busy: {Process != null}\n";
 			message += "Services:\n";
 			foreach (var service in Server.Services) {
 				message += $"- {service.GetType().Name}\n";

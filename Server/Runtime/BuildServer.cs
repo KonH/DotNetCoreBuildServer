@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
@@ -8,6 +9,14 @@ using Server.Integrations;
 
 namespace Server.Runtime {
 	public class BuildServer {
+
+		public string ServiceName {
+			get {
+				var assembly = GetType().GetTypeInfo().Assembly;
+				var name = assembly.GetName();
+				return $"{name.Name} {name.Version}";
+			}
+		}
 
 		public event Action               OnStatusRequest;
 		public event Action<BuildProcess> OnInitBuild;
