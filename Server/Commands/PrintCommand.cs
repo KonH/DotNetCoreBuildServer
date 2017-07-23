@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Server.Commands {
+	[CommandAttribute("print")]
 	public class PrintCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {

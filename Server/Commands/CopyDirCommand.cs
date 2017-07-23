@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 
 namespace Server.Commands {
+	[CommandAttribute("copy_dir")]
 	public class CopyDirCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {

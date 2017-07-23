@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Server.Commands {
+	[CommandAttribute("run")]
 	public class RunCommand:ICommand {
 
 		string _inMemoryLog = "";

@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 
 namespace Server.Commands {
+	[CommandAttribute("delete_dir")]
 	public class DeleteDirCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {

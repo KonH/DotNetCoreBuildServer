@@ -2,6 +2,7 @@
 using System.IO;
 
 namespace Server.Commands {
+	[CommandAttribute("check_file_exist")]
 	public class CheckFileExistCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {

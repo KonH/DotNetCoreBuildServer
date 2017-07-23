@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace Server.Commands {
+	[CommandAttribute("delete_file")]
 	public class DeleteFileCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 namespace Server.Commands {
+	[CommandAttribute("check_dir_exist")]
 	public class CheckDirExistCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {
