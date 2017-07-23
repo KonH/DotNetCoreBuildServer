@@ -26,9 +26,13 @@ namespace Server.Runtime {
 			get { return IsDone && !IsAborted && Tasks.All(task => task.IsSuccess); }
 		}
 		
+		public TimeSpan WorkTime { get; private set; }
+		
 		public bool IsAborted { get; private set; }
 
 		BuildTask _curTask = null;
+		DateTime  _startTime;
+		DateTime  _endTime;
 		
 		public BuildProcess(Build build) {
 			Name  = build.Name;
@@ -39,7 +43,8 @@ namespace Server.Runtime {
 			return Tasks.FirstOrDefault(task => task.Node == node);
 		}
 
-		public void StartBuild() {
+		public void StartBuild(DateTime time) {
+			_startTime = time;
 			BuildStarted?.Invoke();
 		}
 		
@@ -52,23 +57,29 @@ namespace Server.Runtime {
 			}
 		}
 
-		public void DoneTask(bool isSuccess, string message) {
+		public void DoneTask(DateTime time, bool isSuccess, string message) {
 			var task = _curTask;
 			if (task != null) {
 				task.Done(isSuccess, message);
 				TaskDone?.Invoke(task);
 				_curTask = null;
 				if (IsDone || IsAborted) {
-					BuildDone?.Invoke();
+					DoneBuild(time);
 				}
 			}
 		}
 
-		public void Abort() {
+		public void Abort(DateTime time) {
 			IsAborted = true;
 			if (_curTask == null) {
-				BuildDone?.Invoke();
+				DoneBuild(time);
 			}
+		}
+
+		void DoneBuild(DateTime time) {
+			_endTime = time;
+			WorkTime = _endTime - _startTime;
+			BuildDone?.Invoke();
 		}
 	}
 }

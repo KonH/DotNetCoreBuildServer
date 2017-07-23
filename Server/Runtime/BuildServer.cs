@@ -45,6 +45,8 @@ namespace Server.Runtime {
 		Thread       _thread    = null;
 		BuildProcess _process   = null;
 		
+		DateTime _curTime => DateTime.Now;
+		
 		public BuildServer(string name, IEnumerable<IService> services, params string[] projectPathes) {
 			Name = name;
 			Project = Project.Load(projectPathes);
@@ -87,21 +89,21 @@ namespace Server.Runtime {
 			_thread = new Thread(ProcessBuild);
 			_thread.Start();
 		}
-
+		
 		public void StopBuild() {
-			_process?.Abort();
+			_process?.Abort(_curTime);
 		}
 
 		void ProcessBuild() {
 			var nodes = _build.Nodes;
-			_process.StartBuild();
+			_process.StartBuild(_curTime);
 			if (nodes.Count == 0) {
-				_process.Abort();
+				_process.Abort(_curTime);
 			}
 			foreach (var node in nodes) {
 				var result = ProcessCommand(_build, _buildArgs, node);
 				if (!result) {
-					_process.Abort();
+					_process.Abort(_curTime);
 				}
 				if (_process.IsAborted) {
 					break;
@@ -143,7 +145,7 @@ namespace Server.Runtime {
 			var command = CommandFactory.Create(node);
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			var result = command.Execute(runtimeArgs);
-			_process.DoneTask(result.IsSuccess, result.Message);
+			_process.DoneTask(_curTime, result.IsSuccess, result.Message);
 			return result.IsSuccess;
 		}
 

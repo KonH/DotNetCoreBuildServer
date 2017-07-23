@@ -28,7 +28,7 @@ namespace Server.Views {
 
 		protected override void OnBuildProcessDone() {
 			Console.WriteLine();
-			Console.WriteLine($"Build done: {Process.Name} (success: {Process.IsSuccess})");
+			Console.WriteLine($"Build done: {Process.Name} (success: {Process.IsSuccess}) for {Process.WorkTime}");
 			foreach (var task in Process.Tasks) {
 				if (task.IsStarted) {
 					Console.WriteLine($"{task.Node.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");
