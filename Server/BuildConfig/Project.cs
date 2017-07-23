@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace Server.BuildConfig {
@@ -16,13 +17,17 @@ namespace Server.BuildConfig {
 			var builder = new ConfigurationBuilder();
 			foreach (var path in pathes) {
 				builder.AddJsonFile(path);
+				Debug.WriteLine($"Project.Load: use file: '{path}'");
 			}
 			var config = builder.Build();
 			var keys = new Dictionary<string, string>();
 			foreach (var node in config.AsEnumerable()) {
+				Debug.WriteLine(
+					$"Project.Load: key/value in file: '{node.Key}'=>'{node.Value}'");
 				keys.Add(node.Key, node.Value);
 			}
 			var project = new Project(keys);
+			Debug.WriteLine($"Project.Load: loaded buildsRoot: '{project.BuildsRoot}'");
 			return project;
 		}
 	}

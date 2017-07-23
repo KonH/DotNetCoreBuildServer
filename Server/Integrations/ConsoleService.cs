@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Server.BuildConfig;
 using Server.Controllers;
 using Server.Runtime;
@@ -13,6 +14,7 @@ namespace Server.Integrations {
 		public bool TryInit(BuildServer server, Project project) {
 			_controller = new ConsoleServerController(server);
 			_view       = new ConsoleServerView(server);
+			Debug.WriteLine("ConsoleService: initialized");
 			return true;
 		}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Server.Integrations;
 using Server.Runtime;
@@ -15,7 +16,7 @@ namespace ConsoleClient {
 			var serverName = args[0];
 			var serverArgs = args.Skip(1).ToArray();
 			var consoleService = new ConsoleService();
-			var services = new IService[] {
+			var services = new List<IService> {
 				consoleService,
 				new SlackService()
 			};

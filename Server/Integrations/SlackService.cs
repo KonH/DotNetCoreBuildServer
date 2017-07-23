@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Server.BuildConfig;
 using Server.Controllers;
@@ -29,22 +30,29 @@ namespace Server.Integrations {
 			var token = keys.Get("slack_token");
 			var hub = keys.Get("slack_hub");
 			if (IsValidSettings(name, token, hub)) {
-				Init(server, name, token, hub);
-				return true;
+				return InitBot(server, name, token, hub);
 			}
+			Debug.WriteLine(
+				$"SlackService.TryInit: wrong arguments: name: '{name}', token: '{token}', hub: '{hub}'");
 			return false;
 		}
 		
-		void Init(BuildServer server, string name, string token, string hub) {
+		bool InitBot(BuildServer server, string name, string token, string hub) {
 			_name = name;
 			_hub  = hub;
-			InitBotAsync(token).GetAwaiter().GetResult();
+			try {
+				InitBotAsync(token).GetAwaiter().GetResult();
+			} catch (Exception e) {
+				Debug.WriteLine($"SlackService.InitBot: exception: {e.ToString()}");
+				return false;
+			}
 			_bot.When(_bot.State.BotUserId, conv => {
 				OnMessage?.Invoke(conv.Text);
 				return null;
 			});
 			_controller = new SlackServerController(this, server);
 			_view       = new SlackServerView(this, server);
+			return true;
 		}
 
 		async Task InitBotAsync(string token) {
@@ -52,9 +60,14 @@ namespace Server.Integrations {
 		}
 
 		public async void SendMessage(string message) {
+			Debug.WriteLine($"SlackService.SendMessage: '{message}'");
 			var hubState = _bot.State.GetHub(_hub);
 			var fullMessage = string.Format("[{0}]\n {1}", _name, message);
-			await _bot.SendAsync(hubState, fullMessage);
+			try {
+				await _bot.SendAsync(hubState, fullMessage);
+			} catch (Exception e) {
+				Debug.WriteLine($"SlackService.SendMessage: exception: ${e.ToString()}");
+			}
 		}
 	}
 }

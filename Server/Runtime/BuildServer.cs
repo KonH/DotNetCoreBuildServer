@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Server.BuildConfig;
@@ -64,7 +66,9 @@ namespace Server.Runtime {
 		
 		DateTime _curTime => DateTime.Now;
 		
-		public BuildServer(string name, IEnumerable<IService> services, params string[] projectPathes) {
+		public BuildServer(string name, List<IService> services, params string[] projectPathes) {
+			Debug.WriteLine(
+				$"BuildServer.ctor: name: '{name}', services: {services.Count()}, pathes: {projectPathes.Length}");
 			Name = name;
 			Project = Project.Load(projectPathes);
 			InitServices(services, Project);
@@ -73,46 +77,64 @@ namespace Server.Runtime {
 		void InitServices(IEnumerable<IService> services, Project project) {
 			Services = new List<IService>();
 			foreach (var service in services) {
-				if (service.TryInit(this, project)) {
+				Debug.WriteLine($"BuildServer.InitServices: {service.GetType().Name}");
+				var isInited = service.TryInit(this, project);
+				Debug.WriteLine($"BuildServer.InitServices: isInited: {isInited}");
+				if (isInited) {
 					Services.Add(service);
 				}
 			}
 		}
 		
-		public void InitBuild(Build build) {
+		public bool TryInitBuild(Build build) {
 			if (_process != null) {
-				return;
+				RaiseCommonError("InitBuild: server is busy!");
+				return false;
 			}
+			Debug.WriteLine($"BuildServer.InitBuild: {build.Name}");
 			_build = build;
 			_process = new BuildProcess(build);
 			OnInitBuild?.Invoke(_process);
+			return true;
 		}
 
 		public void StartBuild(string[] args) {
 			if (_process == null) {
+				Debug.WriteLine("BuildServer.StartBuild: No build to start!");
 				return;
 			}
+			if (_process.IsStarted) {
+				Debug.WriteLine("BuildServer.StartBuild: Build already started!");
+				return;
+			}
+			Debug.WriteLine($"BuildServer.StartBuild: args: {args.Length}");
 			_buildArgs = args;
 			_thread = new Thread(ProcessBuild);
 			_thread.Start();
 		}
 		
 		public void StopBuild() {
+			Debug.WriteLine($"BuildServer.StopBuild: hasProcess: {_process != null}");
 			_process?.Abort(_curTime);
 		}
 
 		void ProcessBuild() {
+			Debug.WriteLine("BuildServer.ProcessBuild");
 			var nodes = _build.Nodes;
 			_process.StartBuild(_curTime);
 			if (nodes.Count == 0) {
+				Debug.WriteLine("BuildServer.ProcessBuild: No build nodes!");
 				_process.Abort(_curTime);
 			}
 			foreach (var node in nodes) {
+				Debug.WriteLine($"BuildServer.ProcessBuild: node: {node.Name} ({node.Command})");
 				var result = ProcessCommand(_build, _buildArgs, node);
 				if (!result) {
+					Debug.WriteLine($"BuildServer.ProcessBuild: failed command!");
 					_process.Abort(_curTime);
 				}
 				if (_process.IsAborted) {
+					Debug.WriteLine($"BuildServer.ProcessBuild: aborted!");
 					break;
 				}
 			}
@@ -122,6 +144,7 @@ namespace Server.Runtime {
 			_process   = null;
 
 			_taskStates = new Dictionary<string, string>();
+			Debug.WriteLine("BuildServer.ProcessBuild: cleared");
 		}
 
 		string TryReplace(string message, string key, string value) {
@@ -145,6 +168,7 @@ namespace Server.Runtime {
 			foreach (var state in _taskStates) {
 				result = TryReplace(result, state.Key, state.Value);
 			}
+			Debug.WriteLine($"BuildServer.ConvertArgValue: '{value}' => '{result}'");
 			return result;
 		}
 
@@ -171,10 +195,15 @@ namespace Server.Runtime {
 		}
 		
 		bool ProcessCommand(Build build, string[] buildArgs, BuildNode node) {
+			Debug.WriteLine($"BuildServer.ProcessCommand: {node.Name} ({node.Command})");
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
+			Debug.WriteLine($"BuildServer.ProcessCommand: command is {command.GetType().Name}");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
+			Debug.WriteLine($"BuildServer.ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
 			var result = command.Execute(runtimeArgs);
+			Debug.WriteLine(
+				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, '{result.Message}', '{result.Result}']");
 			_process.DoneTask(_curTime, result.IsSuccess, result.Message, result.Result);
 			AddTaskState(node.Name, result);
 			return result.IsSuccess;
@@ -188,23 +217,29 @@ namespace Server.Runtime {
 		void AddTaskState(string taskName, string key, string value) {
 			var fullKey = $"{taskName}:{key}";
 			_taskStates.Add(fullKey, value);
+			Debug.WriteLine($"BuildServer.AddTaskState: '{fullKey}'=>'{value}'");
 		}
 		
 		public void RequestStatus() {
+			Debug.WriteLine("BuildServer.RequestStatus");
 			OnStatusRequest?.Invoke();
 		}
 
 		public void StopServer() {
+			Debug.WriteLine($"BuildServer.StopServer: hasProcess: {_process != null}");
 			StopBuild();
 			while (_process != null) {}
 			OnStop?.Invoke();
+			Debug.WriteLine("BuildServer.StopServer: done");
 		}
 
 		public void RequestHelp() {
+			Debug.WriteLine("BuildServer.RequestHelp");
 			OnHelpRequest?.Invoke();
 		}
 
 		public void RaiseCommonError(string message) {
+			Debug.WriteLine($"BuildServer.RaiseCommonError: {message}");
 			OnCommonError?.Invoke(message);
 		}
 	}

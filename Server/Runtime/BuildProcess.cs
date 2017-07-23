@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Server.BuildConfig;
 
@@ -44,13 +45,16 @@ namespace Server.Runtime {
 		}
 
 		public void StartBuild(DateTime time) {
+			Debug.WriteLine($"BuildProcess.StartBuild: {time}");
 			_startTime = time;
 			BuildStarted?.Invoke();
 		}
 		
 		public void StartTask(BuildNode node) {
+			Debug.WriteLine($"BuildProcess.StartTask: Node: {node.Name}");
 			var task = FindTask(node);
 			if (task != null) {
+				Debug.WriteLine($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
 				_curTask = task;
 				task.Start();
 				TaskStarted?.Invoke(task);
@@ -58,8 +62,10 @@ namespace Server.Runtime {
 		}
 
 		public void DoneTask(DateTime time, bool isSuccess, string message, string result) {
+			Debug.WriteLine($"BuildProcess.DoneTask: {time}");
 			var task = _curTask;
 			if (task != null) {
+				Debug.WriteLine($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
 				task.Done(isSuccess, message, result);
 				TaskDone?.Invoke(task);
 				_curTask = null;
@@ -70,6 +76,7 @@ namespace Server.Runtime {
 		}
 
 		public void Abort(DateTime time) {
+			Debug.WriteLine($"BuildProcess.Abort: {time}");
 			IsAborted = true;
 			if (_curTask == null) {
 				DoneBuild(time);
@@ -77,6 +84,7 @@ namespace Server.Runtime {
 		}
 
 		void DoneBuild(DateTime time) {
+			Debug.WriteLine($"BuildProcess.DoneBuild: {time}, isAborted: {IsAborted}");
 			_endTime = time;
 			WorkTime = _endTime - _startTime;
 			BuildDone?.Invoke();

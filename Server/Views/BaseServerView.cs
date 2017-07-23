@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Server.Runtime;
 
 namespace Server.Views {
@@ -66,6 +67,7 @@ namespace Server.Views {
 			Process.TaskStarted  += OnTaskStarted;
 			Process.TaskDone     += OnTaskDone;
 			Process.BuildDone    += OnBuildProcessDone;
+			Debug.WriteLine($"OnInitBuild: {process.Name}");
 		}
 
 		protected string GetBuildArgsMessage() {
@@ -91,6 +93,7 @@ namespace Server.Views {
 		protected abstract void OnTaskDone(BuildTask buildTask);
 
 		protected virtual void OnBuildProcessDone() {
+			Debug.WriteLine($"OnBuildProcessDone: {Process.Name}");
 			Process.BuildStarted -= OnBuildProcessStarted;
 			Process.TaskStarted  -= OnTaskStarted;
 			Process.TaskDone     -= OnTaskDone;

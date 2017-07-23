@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Server.BuildConfig;
 using Server.Runtime;
 
@@ -21,18 +23,22 @@ namespace Server.Controllers {
 		}
 		
 		void AddHandler(string name, Action<RequestArgs> handler) {
+			Debug.WriteLine($"BaseServerController.AddHandler: '{name}' => {handler.GetMethodInfo().Name}");
 			_handlers.Add(name, handler);
 		}
 
 		void AddHandler(string name, Action handler) {
+			Debug.WriteLine($"BaseServerController.AddHandler: '{name}' => {handler.GetMethodInfo().Name}");
 			_handlers.Add(name, (_) => handler.Invoke());
 		}
 
 		void RequestHelp() {
+			Debug.WriteLine("BaseServerController.RequestHelp");
 			Server.RequestHelp();
 		}
 		
 		void RequestStatus() {
+			Debug.WriteLine("BaseServerController.RequestStatus");
 			Server.RequestStatus();
 		}
 		
@@ -52,12 +58,14 @@ namespace Server.Controllers {
 					$"StartBuild: build required {build.Args.Count} args, but {args.Count - 1} args is provided!");
 				return;
 			}
-			Server.InitBuild(build);
-			var buildArgs = args.Skip(1).ToArray();
-			Server.StartBuild(buildArgs);
+			if (Server.TryInitBuild(build)) {
+				var buildArgs = args.Skip(1).ToArray();
+				Server.StartBuild(buildArgs);
+			}
 		}
 
 		protected void StopServer() {
+			Debug.WriteLine("BaseServerController.StopServer");
 			Server.StopServer();
 		}
 		
@@ -68,15 +76,19 @@ namespace Server.Controllers {
 			}
 			var request = allParts[0];
 			var requestArgs = new RequestArgs(allParts.Skip(1));
+			Debug.WriteLine($"BaseServerController: '{message}' => ['{request}', '{requestArgs.Count}']");
 			return new ServerRequest(request, requestArgs);
 		}
 		
 		protected void Call(ServerRequest request) {
+			Debug.WriteLine($"BaseServerController.Call: '{request.Request}'");
 			if (!request.IsValid) {
+				Debug.WriteLine("BaseServerController.Call: invalid request, call 'help'");
 				_handlers["help"]?.Invoke(request.Args);
 				return;
 			}
 			var handler = _handlers.Get(request.Request);
+			Debug.WriteLine($"BaseServerController.Call: handler: {handler} (is null: {handler == null})");
 			handler?.Invoke(request.Args);
 		}
 	}

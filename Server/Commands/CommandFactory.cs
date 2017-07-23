@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Server.BuildConfig;
@@ -10,7 +11,14 @@ namespace Server.Commands {
 		static readonly Dictionary<string, Type> Commands = new Dictionary<string, Type>();
 
 		static CommandFactory() {
-			AddAllCurrentHandlers();
+			Debug.WriteLine($"CommandFactory.static ctor()");
+			try {
+				AddAllCurrentHandlers();
+				Debug.WriteLine($"CommandFactory.static ctor(): commands: '{Commands.Count}'");
+			} catch (Exception e) {
+				Debug.WriteLine($"CommandFactory.static ctor(): exception: {e.ToString()}");
+			}
+
 		}
 
 		static bool IsCommandType(Type type) {
@@ -33,6 +41,7 @@ namespace Server.Commands {
 				return;
 			}
 			Commands.Add(command, type);
+			Debug.WriteLine($"CommandFactory.AddCommandHandler: '{command}' => {type.FullName}");
 		}
 		
 		public static ICommand Create(BuildNode node) {
