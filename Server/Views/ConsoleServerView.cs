@@ -12,7 +12,7 @@ namespace Server.Views {
 		
 		protected override void OnBuildProcessStarted() {
 			Console.WriteLine();
-			Console.WriteLine($"Build started: {Process.Name}");
+			Console.WriteLine(GetBuildProcessStartMessage());
 		}
 		
 		protected override void OnTaskStarted(BuildTask buildTask) {
@@ -28,7 +28,8 @@ namespace Server.Views {
 
 		protected override void OnBuildProcessDone() {
 			Console.WriteLine();
-			Console.WriteLine($"Build done: {Process.Name} (success: {Process.IsSuccess}) for {Process.WorkTime}");
+			Console.WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
+			Console.WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
 			foreach (var task in Process.Tasks) {
 				if (task.IsStarted) {
 					Console.WriteLine($"{task.Node.Name} (success: {task.IsSuccess}, message: \"{task.Message}\")");

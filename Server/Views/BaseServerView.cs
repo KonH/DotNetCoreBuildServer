@@ -23,7 +23,20 @@ namespace Server.Views {
 			}
 			message += "Builds:\n";
 			foreach (var build in Server.Builds) {
-				message += $"- {build.Key}\n";
+				message += $"- {build.Key}";
+				var args = build.Value.Args;
+				if (args.Count > 0) {
+					message += " (";
+					for (int i = 0; i < args.Count; i++) {
+						var arg = build.Value.Args[i];
+						message += arg;
+						if (i < args.Count - 1) {
+							message += "; ";
+						}
+					}
+					message += ")";
+				}
+				message += "\n";
 			}
 			return message;
 		}
@@ -38,6 +51,24 @@ namespace Server.Views {
 			Process.BuildDone    += OnBuildProcessDone;
 		}
 
+		protected string GetBuildArgsMessage() {
+			var msg = "";
+			var args = Server.FindCurrentBuildArgs();
+			if ((args != null) && (args.Count > 0)) {
+				msg += "(";
+				foreach (var arg in args) {
+					msg += $"{arg.Key}: {arg.Value}, ";
+				}
+				msg = msg.Substring(0, msg.Length- 2);
+				msg += ")";
+			}
+			return msg;
+		}
+		
+		protected string GetBuildProcessStartMessage() {
+			return $"Build started: {Process.Name} {GetBuildArgsMessage()}\n";
+		}
+		
 		protected abstract void OnBuildProcessStarted();
 		protected abstract void OnTaskStarted(BuildTask buildTask);
 		protected abstract void OnTaskDone(BuildTask buildTask);

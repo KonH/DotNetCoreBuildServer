@@ -15,7 +15,7 @@ namespace Server.Views {
 		}
 		
 		protected override void OnBuildProcessStarted() {
-			_service.SendMessage($"Build started: {Process.Name}");
+			_service.SendMessage(GetBuildProcessStartMessage());
 		}
 
 		protected override void OnTaskStarted(BuildTask buildTask) {}
@@ -23,7 +23,8 @@ namespace Server.Views {
 		protected override void OnTaskDone(BuildTask buildTask) {}
 
 		protected override void OnBuildProcessDone() {
-			var message = $"Build done: {Process.Name} (success: {Process.IsSuccess}) for {Process.WorkTime}\n";
+			var message = $"Build done: {Process.Name} {GetBuildArgsMessage()}\n"; 
+			message += $"(success: {Process.IsSuccess}) for {Process.WorkTime}\n";
 			message += "```\n";
 			foreach (var task in Process.Tasks) {
 				if (task.IsStarted) {

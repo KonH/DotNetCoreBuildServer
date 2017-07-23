@@ -36,11 +36,10 @@ namespace Server.Controllers {
 				return;
 			}
 			var buildName = args[0];
-			var buildPath = Server.FindBuildPath(buildName);
-			if (string.IsNullOrEmpty(buildPath)) {
+			Build build = null;
+			if (!Server.Builds.TryGetValue(buildName, out build)) {
 				return;
 			}
-			var build = Build.Load(buildName, buildPath);
 			Server.InitBuild(build);
 			var buildArgs = args.Skip(1).ToArray();
 			Server.StartBuild(buildArgs);

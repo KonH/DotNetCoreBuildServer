@@ -20,16 +20,20 @@ namespace Server.Runtime {
 		
 		public Project Project { get; }
 		
-		public Dictionary<string, string> Builds {
+		public Dictionary<string, Build> Builds {
 			get {
-				var dict = new Dictionary<string, string>();
+				var dict = new Dictionary<string, Build>();
 				var buildsPath = Project.BuildsRoot;
 				if (Directory.Exists(buildsPath)) {
 					var files = Directory.EnumerateFiles(buildsPath, "*.json");
 					foreach (var filePath in files) {
 						var file = new FileInfo(filePath);
+						var name = ConvertToBuildName(file);
 						var fullPath = file.FullName;
-						dict.Add(ConvertToBuildName(file), fullPath);
+						var build = Build.Load(name, fullPath);
+						if (build != null) {
+							dict.Add(name, build);
+						}
 					}
 				}
 				return dict;
@@ -60,16 +64,6 @@ namespace Server.Runtime {
 					Services.Add(service);
 				}
 			}
-		}
-
-		public string FindBuildPath(string buildName) {
-			var builds = Builds;
-			foreach (var build in builds) {
-				if (build.Key == buildName) {
-					return build.Value;
-				}
-			}
-			return null;
 		}
 		
 		public void InitBuild(Build build) {
@@ -109,7 +103,10 @@ namespace Server.Runtime {
 					break;
 				}
 			}
-			_process = null;
+			_buildArgs = null;
+			_build     = null;
+			_thread    = null;
+			_process   = null;
 		}
 
 		string ConvertArgValue(Project project, Build build, string[] buildArgs, string value) {
@@ -129,6 +126,19 @@ namespace Server.Runtime {
 				}
 			}
 			return result;
+		}
+
+		public Dictionary<string, string> FindCurrentBuildArgs() {
+			if ((_buildArgs == null) || (_build == null)) {
+				return null;
+			}
+			var dict = new Dictionary<string, string>();
+			for (int i = 0; i < _build.Args.Count; i++) {
+				var argName = _build.Args[i];
+				var argValue = _buildArgs[i];
+				dict.Add(argName, argValue);
+			}
+			return dict;
 		}
 		
 		Dictionary<string, string> CreateRuntimeArgs(Project project, Build build, string[] buildArgs, BuildNode node) {
