@@ -22,7 +22,8 @@ namespace Server.BuildConfig {
 			foreach (var node in config.AsEnumerable()) {
 				keys.Add(node.Key, node.Value);
 			}
-			return new Project(keys);
+			var project = new Project(keys);
+			return project;
 		}
 	}
 }

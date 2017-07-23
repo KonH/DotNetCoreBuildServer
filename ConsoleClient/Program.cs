@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Server.Integrations;
 using Server.Runtime;
 
@@ -6,7 +7,9 @@ namespace ConsoleClient {
 	class Program {
 		
 		static void Main(string[] args) {
-			if (args.Length < 1) {
+			if (args.Length < 2) {
+				Console.WriteLine("You need to provide serverName and at least one config path!");
+				Console.WriteLine("Closing...");
 				return;
 			}
 			var serverName = args[0];
@@ -17,6 +20,7 @@ namespace ConsoleClient {
 				new SlackService()
 			};
 			var server = new BuildServer(serverName, services, serverArgs);
+			Console.WriteLine($"{server.ServiceName} started and ready to use.");
 			consoleService.Process();
 		}
 	}
