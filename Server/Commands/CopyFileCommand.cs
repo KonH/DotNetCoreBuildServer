@@ -19,7 +19,7 @@ namespace Server.Commands {
 				File.Copy(fromPath, toPath, true);
 				return CommandResult.Success($"File copied from \"{fromPath}\" to \"{toPath}\".");
 			} catch (Exception e) {
-				return CommandResult.Fail($"Can't copy file from \"{fromPath}\" to \"{toPath}\": \"{e.ToString()}\"");
+				return CommandResult.Fail($"Can't copy file from \"{fromPath}\" to \"{toPath}\": \"{e}\"");
 			}
 		}
 	}

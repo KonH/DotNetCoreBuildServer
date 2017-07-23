@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Server.Controllers {	
+﻿namespace Server.Controllers {	
 	public class ServerRequest {
 		
 		public string      Request { get; }

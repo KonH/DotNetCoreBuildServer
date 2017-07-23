@@ -12,13 +12,13 @@ namespace Server.Integrations {
 		
 		public event Action<string> OnMessage;
 		
-		string   _name = null;
-		string   _hub  = null;
-		SlackBot _bot  = null;
-
-		SlackServerController _controller = null;
-		SlackServerView       _view       = null;
+		public SlackServerController Controller { get; private set; }
+		public SlackServerView       View       { get; private set; }
 		
+		string   _name;
+		string   _hub;
+		SlackBot _bot;
+
 		bool IsValidSettings(string name, string token, string hub) {
 			return 
 				!(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hub));
@@ -43,15 +43,15 @@ namespace Server.Integrations {
 			try {
 				InitBotAsync(token).GetAwaiter().GetResult();
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.InitBot: exception: {e.ToString()}");
+				Debug.WriteLine($"SlackService.InitBot: exception: {e}");
 				return false;
 			}
 			_bot.When(_bot.State.BotUserId, conv => {
 				OnMessage?.Invoke(conv.Text);
 				return null;
 			});
-			_controller = new SlackServerController(this, server);
-			_view       = new SlackServerView(this, server);
+			Controller = new SlackServerController(this, server);
+			View       = new SlackServerView(this, server);
 			return true;
 		}
 
@@ -66,7 +66,7 @@ namespace Server.Integrations {
 			try {
 				await _bot.SendAsync(hubState, fullMessage);
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.SendMessage: exception: ${e.ToString()}");
+				Debug.WriteLine($"SlackService.SendMessage: exception: ${e}");
 			}
 		}
 	}

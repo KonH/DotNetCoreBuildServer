@@ -12,6 +12,17 @@ using Server.Integrations;
 namespace Server.Runtime {
 	public class BuildServer {
 
+		public event Action               OnStatusRequest;
+		public event Action<string, bool> OnCommonError; 
+		public event Action               OnHelpRequest;
+		public event Action<BuildProcess> OnInitBuild;
+		public event Action               OnStop;
+
+		
+		public Project        Project  { get; }
+		public List<IService> Services { get; private set; }
+		public string         Name     { get; }
+		
 		public string ServiceName {
 			get {
 				var assembly = GetType().GetTypeInfo().Assembly;
@@ -19,19 +30,11 @@ namespace Server.Runtime {
 				return $"{name.Name} {name.Version}";
 			}
 		}
-
-		public event Action               OnStatusRequest;
-		public event Action<string, bool> OnCommonError; 
-		public event Action               OnHelpRequest;
-		public event Action<BuildProcess> OnInitBuild;
-		public event Action               OnStop;
-
+		
 		string ConvertToBuildName(FileInfo file) {
 			var ext = file.Extension;
 			return file.Name.Substring(0, file.Name.Length - ext.Length);
 		}
-		
-		public Project Project { get; }
 		
 		public Dictionary<string, Build> Builds {
 			get {
@@ -53,14 +56,10 @@ namespace Server.Runtime {
 			}
 		}
 		
-		public List<IService> Services { get; private set; }
-
-		public string Name { get; }
-		
-		string[]     _buildArgs = null;
-		Build        _build     = null;
-		Thread       _thread    = null;
-		BuildProcess _process   = null;
+		string[]     _buildArgs;
+		Build        _build;
+		Thread       _thread;
+		BuildProcess _process;
 		
 		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
 		

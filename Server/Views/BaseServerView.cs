@@ -7,8 +7,8 @@ namespace Server.Views {
 
 		public bool Alive => Server != null;
 		
-		protected BuildServer  Server  = null;
-		protected BuildProcess Process = null;
+		protected BuildServer  Server;
+		protected BuildProcess Process;
 		
 		protected BaseServerView(BuildServer server) {
 			Server = server;

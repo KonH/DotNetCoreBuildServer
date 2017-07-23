@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using Server.BuildConfig;
 
@@ -16,7 +15,7 @@ namespace Server.Commands {
 				AddAllCurrentHandlers();
 				Debug.WriteLine($"CommandFactory.static ctor(): commands: '{Commands.Count}'");
 			} catch (Exception e) {
-				Debug.WriteLine($"CommandFactory.static ctor(): exception: {e.ToString()}");
+				Debug.WriteLine($"CommandFactory.static ctor(): exception: {e}");
 			}
 
 		}
@@ -45,12 +44,12 @@ namespace Server.Commands {
 		}
 		
 		public static ICommand Create(BuildNode node) {
-			Type commandType = null;
-			if (Commands.TryGetValue(node.Command, out commandType)) {
-				var commandInstance = Activator.CreateInstance(commandType) as ICommand;
-				return commandInstance;
+			Type commandType;
+			if (!Commands.TryGetValue(node.Command, out commandType)) {
+				return new NotFoundCommand();
 			}
-			return new NotFoundCommand();
+			var commandInstance = Activator.CreateInstance(commandType) as ICommand;
+			return commandInstance;
 		}
 	}
 }

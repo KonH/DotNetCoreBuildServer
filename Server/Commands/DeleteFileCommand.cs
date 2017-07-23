@@ -25,7 +25,7 @@ namespace Server.Commands {
 				File.Delete(path);
 				return CommandResult.Success($"File \"{path}\" deleted.");
 			} catch (Exception e) {
-				return CommandResult.Fail($"Can't delete file at \"{path}\": \"{e.ToString()}\"");
+				return CommandResult.Fail($"Can't delete file at \"{path}\": \"{e}\"");
 			}
 		}
 	}

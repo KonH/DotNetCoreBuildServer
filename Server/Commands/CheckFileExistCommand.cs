@@ -19,9 +19,9 @@ namespace Server.Commands {
 				CheckSize(path, sizeMore) :
 				CommandResult.Fail($"File \"{path}\" does not exists!");
 		}
-		
-		CommandResult CheckSize(string path, string sizeMore) {
-			int sizeMoreValue = 0;
+
+		static CommandResult CheckSize(string path, string sizeMore) {
+			int sizeMoreValue;
 			int.TryParse(sizeMore, out sizeMoreValue);
 			if (sizeMoreValue > 0) {
 				var fileInfo = new FileInfo(path);

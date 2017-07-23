@@ -4,7 +4,7 @@ namespace Server {
 	public static class Utils {
 
 		public static TValue Get<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) {
-			TValue value = default(TValue);
+			var value = default(TValue);
 			dict?.TryGetValue(key, out value);
 			return value;
 		}

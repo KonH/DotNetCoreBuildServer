@@ -1,13 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using Server.Integrations;
 using Server.Runtime;
 
 namespace Server.Views {
 	public class SlackServerView:BaseServerView {
 		
-		readonly SlackService _service = null;
+		readonly SlackService _service;
 
 		public SlackServerView(SlackService service, BuildServer server) : base(server) {
 			_service = service;

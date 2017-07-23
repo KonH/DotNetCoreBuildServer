@@ -8,8 +8,8 @@ using Server.Views;
 namespace Server.Integrations {
 	public class ConsoleService:IService {
 
-		ConsoleServerController _controller = null;
-		ConsoleServerView       _view       = null;
+		ConsoleServerController _controller;
+		ConsoleServerView       _view;
 		
 		public bool TryInit(BuildServer server, Project project) {
 			_controller = new ConsoleServerController(server);

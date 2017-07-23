@@ -9,7 +9,7 @@ using Server.Runtime;
 namespace Server.Controllers {
 	public class BaseServerController {
 		
-		protected BuildServer Server = null;
+		protected BuildServer Server;
 
 		readonly Dictionary<string, Action<RequestArgs>> _handlers = 
 			new Dictionary<string, Action<RequestArgs>>();
@@ -48,7 +48,7 @@ namespace Server.Controllers {
 				return;
 			}
 			var buildName = args[0];
-			Build build = null;
+			Build build;
 			if (!Server.Builds.TryGetValue(buildName, out build)) {
 				Server.RaiseCommonError("StartBuild: Wrong build name!", false);
 				return;

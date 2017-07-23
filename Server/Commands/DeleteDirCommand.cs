@@ -20,7 +20,7 @@ namespace Server.Commands {
 				Directory.Delete(path, recursiveValue);
 				return CommandResult.Success($"Directory \"{path}\" deleted.");
 			} catch (Exception e) {
-				return CommandResult.Fail($"Can't delete directory at \"{path}\": \"{e.ToString()}\"");
+				return CommandResult.Fail($"Can't delete directory at \"{path}\": \"{e}\"");
 			}
 		}
 	}
