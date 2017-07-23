@@ -1,6 +1,6 @@
 # DotNetCoreBuildServer
 
-**DotNetCoreBuildServer** is a build system based on **.NET Core** (netstandard1.4). It allow you to run batch of actions (check/copy directory/files, run external tools) and collect results in simple way. Also, it provide **Slack** integration.
+**DotNetCoreBuildServer** is a build system based on **.NET Core** (netstandard1.4). It allows you to run batch of actions (check/copy directory/files, run external tools) and collect results in a simple way. Also, it provides **Slack** integration.
 
 ## Configuration
 
@@ -24,9 +24,9 @@ If you need Slack integration, add these lines:
 }
 ```
 
-Slack token you can get in team dashboard after add new bot, slack hub can be #channelName or @userName, and after it you can control you bot in this channel or direct messages with user.
+Slack token you can get in team dashboard after adding new bot, slack hub can be #channelName or @userName, and after that you can control your bot in this channel or direct messages with user.
 
-Any other parts of project config is optional and used as replacers. For example, you have "root" in project config:
+Any other parts of project config are optional and used as replacers. For example, you have "root" in project config:
 
 ```
 {
@@ -45,9 +45,9 @@ After it, you can use {root} in build tasks:
 
 ### Build config
 
-Build configs is placed to one directory, specified in "builds" in project config. One **.json** file per build.
+Build configs are placed to one directory, specified in "builds" in project config. One **.json** file per build.
 
-Build config look like these:
+Build config looks like this:
 
 ```
 {
@@ -69,7 +69,7 @@ Build config look like these:
 }
 ```
 
-Any command has "message" and "result", "message" is full output, "result" can contains short info (see "run" task). You can get these values using **{taskName:message}** and **{taskName:result}** in next tasks parameter values.
+Any command has "message" and "result", "message" is full output, "result" can contain short info (see "run" task). You can get these values using **{taskName:message}** and **{taskName:result}** in next tasks parameter values.
 
 Full list of commands you can see at **Tasks** section.
 
@@ -111,7 +111,7 @@ You can control your server with commands described below:
 
 ## Build process
 
-Build tasks executed in described order, if one task failed, all next tasks is skipped. If build is done, last "message" is shown. If build is failed, full execution log is shown.
+Build tasks executed in described order, if one task failed, all next tasks are skipped. If build is done, last "message" is shown. If build is failed, full execution log is shown.
 
 ## Slack integration usage
 
@@ -120,13 +120,13 @@ Using Slack integration, you can execute the same commands, when you mention you
 ```
 @buildbot build myBuild 1.0.0
 ```
-It recognized as:
+It is recognized as:
 
 ```
 build myBuild 1.0.0
 ```
 
-And build was started (if exist).
+And build is started (if exists).
 
 In any server response you can see server name:
 
@@ -157,7 +157,7 @@ You can use several servers (as many as you want), but if you don't need to dupl
 ### Run
 
 - Command output is shown as "message"
-- If logfile is exist, "message" does not contains actual message, but contains path to log
+- If "logfile" exists, "message" does not contain actual message, but contains path to log
 - To catch errors in output, use "error_regex"
 - To convert message to short "result", use "result_regex" 
 
@@ -228,7 +228,7 @@ Example:
 }
 ```
 
-You can place this task as last place and collect all required data in it "message".
+You can place this task as last place and collect all required data in its "message".
 
 ### Check file exist/check dir exist
 
