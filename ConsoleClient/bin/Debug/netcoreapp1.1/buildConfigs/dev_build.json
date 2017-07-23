@@ -17,7 +17,7 @@
 					"path": "git",
 					"args": "reset --hard",
 					"work_dir": "{root}/git_repo",
-					"error_filter": "error"
+					"error_regex": "(error|fatal)"
 				}
 			}
 		},
@@ -27,7 +27,7 @@
 					"path": "git",
 					"args": "fetch --all",
 					"work_dir": "{root}/git_repo",
-					"error_filter": "error"
+					"error_regex": "(error|fatal)"
 				}
 			}
 		},
@@ -37,7 +37,7 @@
 					"path": "git",
 					"args": "checkout {tag}",
 					"work_dir": "{root}/git_repo",
-					"error_filter": "error"
+					"error_regex": "(error|fatal)"
 				}
 			}
 		},
@@ -87,7 +87,7 @@
 					"path": "svn",
 					"args": "cleanup",
 					"work_dir": "{root}/local_svn",
-					"error_filter": "error"
+					"error_regex": "error"
 				}
 			}
 		},
@@ -97,7 +97,7 @@
 					"path": "svn",
 					"args": "update",
 					"work_dir": "{root}/local_svn",
-					"error_filter": "error"
+					"error_regex": "error"
 				}
 			}
 		},
@@ -115,7 +115,7 @@
 					"path": "svn",
 					"args": "add . --force",
 					"work_dir": "{root}/local_svn",
-					"error_filter": "error"
+					"error_regex": "error"
 				}
 			}
 		},
@@ -125,7 +125,7 @@
 					"path": "svn",
 					"args": "commit -m \"Build for {tag}.\"",
 					"work_dir": "{root}/local_svn",
-					"error_filter": "error;Commit failed",
+					"error_regex": "(error|Commit failed)",
 					"log_file": "{root}/upload_log.txt",
 					"result_regex": "(?<=Committed revision )([0-9]*)"
 				}
