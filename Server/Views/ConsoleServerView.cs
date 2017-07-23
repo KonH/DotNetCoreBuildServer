@@ -7,8 +7,8 @@ namespace Server.Views {
 		
 		public ConsoleServerView(BuildServer server) : base(server) { }
 
-		protected override void OnCommonError(string message) {
-			Console.WriteLine($"Error: {message}");
+		protected override void OnCommonError(string message, bool isFatal) {
+			Console.WriteLine($"Error: {message}, isFatal {isFatal}");
 		}
 		
 		protected override void OnStatusRequest() {

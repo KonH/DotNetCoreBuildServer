@@ -19,7 +19,7 @@ namespace Server.Views {
 			Server.OnStop          += OnStop;
 		}
 
-		protected abstract void OnCommonError(string message);
+		protected abstract void OnCommonError(string message, bool isFatal);
 		
 		protected string GetHelpMessage() {
 			var message = "Commands:\n";

@@ -21,7 +21,7 @@ namespace Server.Runtime {
 		}
 
 		public event Action               OnStatusRequest;
-		public event Action<string>       OnCommonError; 
+		public event Action<string, bool> OnCommonError; 
 		public event Action               OnHelpRequest;
 		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
@@ -88,7 +88,7 @@ namespace Server.Runtime {
 		
 		public bool TryInitBuild(Build build) {
 			if (_process != null) {
-				RaiseCommonError("InitBuild: server is busy!");
+				RaiseCommonError("InitBuild: server is busy!", true);
 				return false;
 			}
 			Debug.WriteLine($"BuildServer.InitBuild: {build.Name}");
@@ -238,9 +238,9 @@ namespace Server.Runtime {
 			OnHelpRequest?.Invoke();
 		}
 
-		public void RaiseCommonError(string message) {
+		public void RaiseCommonError(string message, bool isFatal) {
 			Debug.WriteLine($"BuildServer.RaiseCommonError: {message}");
-			OnCommonError?.Invoke(message);
+			OnCommonError?.Invoke(message, isFatal);
 		}
 	}
 }
