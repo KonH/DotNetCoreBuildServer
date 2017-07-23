@@ -26,12 +26,11 @@ namespace Server.Runtime {
 		public bool IsSuccess {
 			get { return IsDone && !IsAborted && Tasks.All(task => task.IsSuccess); }
 		}
-		
-		public TimeSpan WorkTime { get; private set; }
-		
-		public bool IsAborted { get; private set; }
 
-		BuildTask _curTask = null;
+		public BuildTask CurrentTask { get; private set; }
+		public TimeSpan  WorkTime    { get; private set; }
+		public bool      IsAborted   { get; private set; }
+
 		DateTime  _startTime;
 		DateTime  _endTime;
 		
@@ -55,7 +54,7 @@ namespace Server.Runtime {
 			var task = FindTask(node);
 			if (task != null) {
 				Debug.WriteLine($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
-				_curTask = task;
+				CurrentTask = task;
 				task.Start();
 				TaskStarted?.Invoke(task);
 			}
@@ -63,12 +62,12 @@ namespace Server.Runtime {
 
 		public void DoneTask(DateTime time, bool isSuccess, string message, string result) {
 			Debug.WriteLine($"BuildProcess.DoneTask: {time}");
-			var task = _curTask;
+			var task = CurrentTask;
 			if (task != null) {
 				Debug.WriteLine($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
 				task.Done(isSuccess, message, result);
 				TaskDone?.Invoke(task);
-				_curTask = null;
+				CurrentTask = null;
 				if (IsDone || IsAborted) {
 					DoneBuild(time);
 				}
@@ -78,7 +77,7 @@ namespace Server.Runtime {
 		public void Abort(DateTime time) {
 			Debug.WriteLine($"BuildProcess.Abort: {time}");
 			IsAborted = true;
-			if (_curTask == null) {
+			if (CurrentTask == null) {
 				DoneBuild(time);
 			}
 		}

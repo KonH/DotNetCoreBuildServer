@@ -35,6 +35,14 @@ namespace Server.Views {
 		protected string GetStatusMessage() {
 			var message = $"{Server.ServiceName}\n";
 			message += $"Is busy: {Process != null}\n";
+			var curTask = Process?.CurrentTask;
+			if (curTask != null) {
+				var allTasks = Process.Tasks;
+				var curTaskName = curTask.Node.Name;
+				var taskIndex = allTasks.IndexOf(curTask);
+				var totalTasks = allTasks.Count;
+				message += $"Task: {curTaskName} ({taskIndex}/{totalTasks})\n";
+			}
 			message += "Services:\n";
 			foreach (var service in Server.Services) {
 				message += $"- {service.GetType().Name}\n";
