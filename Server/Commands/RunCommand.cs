@@ -43,20 +43,20 @@ namespace Server.Commands {
 					process.WaitForExit();
 				}
 				
-				string errorFilter = null;
-				args.TryGetValue("error_filter", out errorFilter);
+				string errorRegex = null;
+				args.TryGetValue("error_regex", out errorRegex);
 				string resultRegex = null;
 				args.TryGetValue("result_regex", out resultRegex);
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
 					var logContent = File.ReadAllText(logFile);
 					var result = GetResultMessage(resultRegex, logContent);
-					return CheckCommandResult(errorFilter, logContent, msg, result);
+					return CheckCommandResult(errorRegex, logContent, msg, result);
 				} else {
 					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
 					var msg = _inMemoryLog;
 					var result = GetResultMessage(resultRegex, msg);
-					return CheckCommandResult(errorFilter, msg, msg, result);
+					return CheckCommandResult(errorRegex, msg, msg, result);
 				}
 			}
 			catch (Exception e) {
@@ -95,25 +95,17 @@ namespace Server.Commands {
 			}
 		}
 
-		bool ContainsError(string errorFilter, string message) {
-			if (!string.IsNullOrEmpty(errorFilter)) {
-				if (errorFilter.Contains(";")) {
-					var errorParts = errorFilter.Split(';');
-					foreach (var part in errorParts) {
-						if (ContainsError(part, message)) {
-							return true;
-						}
-					}
-					return false;
-				}
-				return message.Contains(errorFilter);
+		bool ContainsError(string errorRegex, string message) {
+			if (!string.IsNullOrEmpty(errorRegex)) {
+				var regex = new Regex(errorRegex);
+				return regex.IsMatch(message);
 			}
 			return false;
 		}
 		
-		CommandResult CheckCommandResult(string errorFilter, string messageToCheck, string messageToShow, string result) {
+		CommandResult CheckCommandResult(string errorRegex, string messageToCheck, string messageToShow, string result) {
 			return
-				ContainsError(errorFilter, messageToCheck) ?
+				ContainsError(errorRegex, messageToCheck) ?
 					CommandResult.Fail(messageToShow) : 
 					CommandResult.Success(messageToShow, result);
 		}
