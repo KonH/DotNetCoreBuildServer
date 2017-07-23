@@ -25,11 +25,9 @@ namespace Server.Integrations {
 		
 		public bool TryInit(BuildServer server, Project project) {
 			string name = server.Name;
-			string token = null;
-			string hub = null;
 			var keys = project.Keys;
-			keys.TryGetValue("slack_token", out token);
-			keys.TryGetValue("slack_hub", out hub);
+			var token = keys.Get("slack_token");
+			var hub = keys.Get("slack_hub");
 			if (IsValidSettings(name, token, hub)) {
 				Init(server, name, token, hub);
 				return true;

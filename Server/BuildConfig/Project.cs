@@ -6,13 +6,7 @@ namespace Server.BuildConfig {
 
 		public Dictionary<string, string> Keys { get; }
 
-		public string BuildsRoot {
-			get {
-				string path = null;
-				Keys.TryGetValue("builds", out path);
-				return path;
-			}
-		}
+		public string BuildsRoot => Keys.Get("builds");
 
 		Project(Dictionary<string, string> keys) {
 			Keys = keys;

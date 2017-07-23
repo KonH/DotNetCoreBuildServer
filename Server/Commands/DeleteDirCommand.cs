@@ -10,13 +10,11 @@ namespace Server.Commands {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}
-			string path = null;
-			args.TryGetValue("path", out path);
+			var path = args.Get("path");
 			if (string.IsNullOrEmpty(path)) {
 				return CommandResult.Fail("No path provided!");
 			}
-			string recursive = null;
-			args.TryGetValue("recursive", out recursive);
+			var recursive = args.Get("recursive");
 			try {
 				var recursiveValue = !string.IsNullOrEmpty(recursive) && bool.Parse(recursive);
 				Directory.Delete(path, recursiveValue);

@@ -10,10 +10,8 @@ namespace Server.Commands {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}
-			string fromPath = null;
-			args.TryGetValue("from", out fromPath);
-			string toPath = null;
-			args.TryGetValue("to", out toPath);
+			var fromPath = args.Get("from");
+			var toPath = args.Get("to");
 			if (string.IsNullOrEmpty(fromPath) || string.IsNullOrEmpty(toPath)) {
 				return CommandResult.Fail("No pathes provided!");
 			}

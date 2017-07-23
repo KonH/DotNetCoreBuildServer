@@ -15,17 +15,13 @@ namespace Server.Commands {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}
-			string path = null;
-			args.TryGetValue("path", out path);
+			var path = args.Get("path");
 			if (string.IsNullOrEmpty(path)) {
 				return CommandResult.Fail("No path provided!");
 			}
-			string commandArgs = null;
-			args.TryGetValue("args", out commandArgs);
-			string workDir = null;
-			args.TryGetValue("work_dir", out workDir);
-			string logFile = null;
-			args.TryGetValue("log_file", out logFile);
+			var commandArgs = args.Get("args");
+			var workDir = args.Get("work_dir");
+			var logFile = args.Get("log_file");
 			try {
 				var startInfo = new ProcessStartInfo(path, commandArgs);
 				if (!string.IsNullOrEmpty(workDir)) {
@@ -44,10 +40,8 @@ namespace Server.Commands {
 					process.WaitForExit();
 				}
 				
-				string errorRegex = null;
-				args.TryGetValue("error_regex", out errorRegex);
-				string resultRegex = null;
-				args.TryGetValue("result_regex", out resultRegex);
+				var errorRegex = args.Get("error_regex");
+				var resultRegex = args.Get("result_regex");
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
 					var logContent = File.ReadAllText(logFile);

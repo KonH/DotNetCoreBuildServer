@@ -69,8 +69,7 @@ namespace Server.Controllers {
 				_handlers["help"]?.Invoke(request.Args);
 				return;
 			}
-			Action<RequestArgs> handler = null;
-			_handlers.TryGetValue(request.Request, out handler);
+			var handler = _handlers.Get(request.Request);
 			handler?.Invoke(request.Args);
 		}
 	}

@@ -9,8 +9,7 @@ namespace Server.Commands {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}
-			string message = null;
-			args.TryGetValue("message", out message);
+			var message = args.Get("message");
 			if (string.IsNullOrEmpty(message)) {
 				return CommandResult.Fail("No message provided!");
 			}
