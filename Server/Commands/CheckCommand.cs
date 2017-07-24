@@ -5,6 +5,9 @@ namespace Server.Commands {
 	public class CheckCommand:ICommand {
 		
 		public CommandResult Execute(Dictionary<string, string> args) {
+			if (args == null) {
+				return CommandResult.Fail("No arguments provided!");
+			}
 			var condition = args.Get("condition");
 			var value = args.Get("value");
 			var silent = args.Get("silent");

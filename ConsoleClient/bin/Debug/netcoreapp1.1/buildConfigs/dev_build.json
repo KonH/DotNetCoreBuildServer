@@ -148,6 +148,21 @@
 			}
 		},
 		{
+			"make_new_dir": {
+				"make_dir": {
+					"path": "{root}/newDirectory"
+				}
+			}
+		},
+		{
+			"make_new_file": {
+				"make_file": {
+					"path": "{root}/newFile.txt",
+					"content": "{upload_build:message}"
+				}
+			}	
+		},
+		{
 			"build_report": {
 				"print": {
 					"message": "Build result rev.{upload_build:result}"

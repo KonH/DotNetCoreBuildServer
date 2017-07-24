@@ -239,10 +239,10 @@ You can place this task as last place and collect all required data in its "mess
 You can check any values to given condition, if "silent" is set to "true", full build log is skipped:
 
 ```
-"only_on_testServer": {
+"task_name": {
 	"check": {
-		"condition": "testServer",
-		"value": "{serverName}",
+		"condition": "condition",
+		"value": "{replacer}",
 		"silent": "true"
 	}
 }
@@ -329,5 +329,32 @@ Failed only if "if_exist": "true"
 			"to": "toPath"
 		}
 	}
+}
+```
+
+### Make file/make dir
+
+Make new directory:
+
+```
+{
+	"task_name": {
+		"make_dir": {
+			"path": "pathToDir"
+		}
+	}
+}
+```
+
+Make new file with given content (optional):
+
+```
+{
+	"task_name": {
+		"make_file": {
+			"path": "pathToFile",
+			"content": "fileContent"
+		}
+	}	
 }
 ```
