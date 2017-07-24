@@ -69,7 +69,7 @@ namespace Server.Runtime {
 			Debug.WriteLine(
 				$"BuildServer.ctor: name: '{name}', services: {services.Count()}, pathes: {projectPathes.Length}");
 			Name = name;
-			Project = Project.Load(projectPathes);
+			Project = Project.Load(name, projectPathes);
 			InitServices(services, Project);
 		}
 

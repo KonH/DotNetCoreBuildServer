@@ -43,6 +43,8 @@ After it, you can use {root} in build tasks:
 }
 ```
 
+Also, your server name is already added to available replacers as "serverName".
+
 ### Build config
 
 Build configs are placed to one directory, specified in "builds" in project config. One **.json** file per build.

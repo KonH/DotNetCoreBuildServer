@@ -36,7 +36,7 @@ namespace Server.Views {
 		
 		protected string GetStatusMessage() {
 			var sb = new StringBuilder();
-			sb.Append($"{Server.ServiceName}\n");
+			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
 			sb.Append($"Is busy: {Process != null}\n");
 			var curTask = Process?.CurrentTask;
 			if (curTask != null) {

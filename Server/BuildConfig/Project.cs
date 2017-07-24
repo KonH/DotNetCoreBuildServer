@@ -13,7 +13,7 @@ namespace Server.BuildConfig {
 			Keys = keys;
 		}
 		
-		public static Project Load(string[] pathes) {
+		public static Project Load(string serverName, string[] pathes) {
 			var builder = new ConfigurationBuilder();
 			foreach (var path in pathes) {
 				builder.AddJsonFile(path);
@@ -26,6 +26,7 @@ namespace Server.BuildConfig {
 					$"Project.Load: key/value in file: '{node.Key}'=>'{node.Value}'");
 				keys.Add(node.Key, node.Value);
 			}
+			keys.Add("serverName", serverName);
 			var project = new Project(keys);
 			Debug.WriteLine($"Project.Load: loaded buildsRoot: '{project.BuildsRoot}'");
 			return project;

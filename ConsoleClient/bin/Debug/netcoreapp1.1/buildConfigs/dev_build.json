@@ -4,6 +4,13 @@
 	],
 	"tasks": [
 		{
+			"show_server_name": {
+				"print": {
+					"message": "server name is {serverName}"
+				}
+			}
+		},
+		{
 			"validate_project_root": {
 				"check_dir_exist": {
 					"path": "{root}",
