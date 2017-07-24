@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text;
 using Server.Integrations;
 using Server.Runtime;
 
@@ -34,19 +35,20 @@ namespace Server.Views {
 		protected override void OnTaskDone(BuildTask buildTask) {}
 
 		protected override void OnBuildProcessDone() {
-			var message = $"Build done: {Process.Name} {GetBuildArgsMessage()}\n"; 
-			message += $"(success: {Process.IsSuccess}) for {Process.WorkTime}\n";
+			var sb = new StringBuilder();
+			sb.Append($"Build done: {Process.Name} {GetBuildArgsMessage()}\n"); 
+			sb.Append($"(success: {Process.IsSuccess}) for {Process.WorkTime}\n");
 			var lastTask = Process.Tasks.Last();
 			if (lastTask.IsSuccess) {
-				message += "Last task message:\n```\n";
-				message += lastTask.Message;
-				message += "\n```";
+				sb.Append("Last task message:\n```\n");
+				sb.Append(lastTask.Message);
+				sb.Append("\n```");
 			} else {
-				message += "```\n";
-				message += GetTasksInfo(Process.Tasks);
-				message += "```\n";
+				sb.Append("```\n");
+				sb.Append(GetTasksInfo(Process.Tasks));
+				sb.Append("```\n");
 			}
-			_service.SendMessage(message);
+			_service.SendMessage(sb.ToString());
 			base.OnBuildProcessDone();
 		}
 	}

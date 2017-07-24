@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Server.Runtime;
 
 namespace Server.Views {
@@ -22,49 +23,51 @@ namespace Server.Views {
 		protected abstract void OnCommonError(string message, bool isFatal);
 		
 		protected string GetHelpMessage() {
-			var message = "Commands:\n";
-			message += "- \"status\" - current server status\n";
-			message += "- \"stop\" - stop current build, if it is started\n";
-			message += "- \"build arg0 arg1 ... argN\" - start build with given parameters\n";
-			message += "- \"help\" - show this message\n";
-			return message;
+			var sb = new StringBuilder();
+			sb.Append("Commands:\n");
+			sb.Append("- \"status\" - current server status\n");
+			sb.Append("- \"stop\" - stop current build, if it is started\n");
+			sb.Append("- \"build arg0 arg1 ... argN\" - start build with given parameters\n");
+			sb.Append("- \"help\" - show this message\n");
+			return sb.ToString();
 		}
 
 		protected abstract void OnHelpRequest();
 		
 		protected string GetStatusMessage() {
-			var message = $"{Server.ServiceName}\n";
-			message += $"Is busy: {Process != null}\n";
+			var sb = new StringBuilder();
+			sb.Append($"{Server.ServiceName}\n");
+			sb.Append($"Is busy: {Process != null}\n");
 			var curTask = Process?.CurrentTask;
 			if (curTask != null) {
 				var allTasks = Process.Tasks;
 				var curTaskName = curTask.Node.Name;
 				var taskIndex = allTasks.IndexOf(curTask);
 				var totalTasks = allTasks.Count;
-				message += $"Task: {curTaskName} ({taskIndex}/{totalTasks})\n";
+				sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks})\n");
 			}
-			message += "Services:\n";
+			sb.Append("Services:\n");
 			foreach (var service in Server.Services) {
-				message += $"- {service.GetType().Name}\n";
+				sb.Append($"- {service.GetType().Name}\n");
 			}
-			message += "Builds:\n";
+			sb.Append("Builds:\n");
 			foreach (var build in Server.Builds) {
-				message += $"- {build.Key}";
+				sb.Append($"- {build.Key}");
 				var args = build.Value.Args;
 				if (args.Count > 0) {
-					message += " (";
-					for (int i = 0; i < args.Count; i++) {
+					sb.Append(" (");
+					for (var i = 0; i < args.Count; i++) {
 						var arg = build.Value.Args[i];
-						message += arg;
+						sb.Append(arg);
 						if (i < args.Count - 1) {
-							message += "; ";
+							sb.Append("; ");
 						}
 					}
-					message += ")";
+					sb.Append(")");
 				}
-				message += "\n";
+				sb.Append("\n");
 			}
-			return message;
+			return sb.ToString();
 		}
 		
 		protected abstract void OnStatusRequest();
@@ -79,16 +82,17 @@ namespace Server.Views {
 		}
 
 		protected string GetBuildArgsMessage() {
-			var msg = "";
+			var sb = new StringBuilder();
 			var args = Server.FindCurrentBuildArgs();
-			if ((args != null) && (args.Count > 0)) {
-				msg += "(";
-				foreach (var arg in args) {
-					msg += $"{arg.Key}: {arg.Value}, ";
-				}
-				msg = msg.Substring(0, msg.Length- 2);
-				msg += ")";
+			if ((args == null) || (args.Count <= 0)) {
+				return "";
 			}
+			sb.Append("(");
+			foreach (var arg in args) {
+				sb.Append($"{arg.Key}: {arg.Value}, ");
+			}
+			var msg = sb.ToString().Substring(0, sb.Length- 2);
+			msg += ")";
 			return msg;
 		}
 		
