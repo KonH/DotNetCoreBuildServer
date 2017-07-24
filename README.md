@@ -77,7 +77,7 @@ Also, you can look at full example [here](https://github.com/KonH/DotNetCoreBuil
 
 ## Start
 
-You need to [dotnet](https://www.microsoft.com/net/download/core) runtime installed. Next steps is osX based, but Windows is also supported:
+You need [dotnet](https://www.microsoft.com/net/download/core) runtime installed. Next steps is osX based, but Windows is also supported:
 
 ```
 git clone https://github.com/KonH/DotNetCoreBuildServer.git
