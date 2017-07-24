@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Server.BuildConfig;
+using Server.Commands;
 
 namespace Server.Runtime {
 	public class BuildProcess {
@@ -30,6 +31,7 @@ namespace Server.Runtime {
 		public BuildTask CurrentTask { get; private set; }
 		public TimeSpan  WorkTime    { get; private set; }
 		public bool      IsAborted   { get; private set; }
+		public bool      Silent      { get; private set; }
 
 		DateTime  _startTime;
 		DateTime  _endTime;
@@ -60,17 +62,19 @@ namespace Server.Runtime {
 			}
 		}
 
-		public void DoneTask(DateTime time, bool isSuccess, string message, string result) {
+		public void DoneTask(DateTime time, CommandResult result) {
 			Debug.WriteLine($"BuildProcess.DoneTask: {time}");
 			var task = CurrentTask;
-			if (task != null) {
-				Debug.WriteLine($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
-				task.Done(isSuccess, message, result);
-				TaskDone?.Invoke(task);
-				CurrentTask = null;
-				if (IsDone || IsAborted) {
-					DoneBuild(time);
-				}
+			if (task == null) {
+				return;
+			}
+			Debug.WriteLine($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
+			task.Done(result.IsSuccess, result.Message, result.Result);
+			Silent = result.Silent;
+			TaskDone?.Invoke(task);
+			CurrentTask = null;
+			if (IsDone || IsAborted) {
+				DoneBuild(time);
 			}
 		}
 

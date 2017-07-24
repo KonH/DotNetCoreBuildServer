@@ -35,6 +35,9 @@ namespace Server.Views {
 		protected override void OnTaskDone(BuildTask buildTask) {}
 
 		protected override void OnBuildProcessDone() {
+			if (Process.Silent) {
+				return;
+			}
 			var sb = new StringBuilder();
 			sb.Append($"Build done: {Process.Name} {GetBuildArgsMessage()}\n"); 
 			sb.Append($"(success: {Process.IsSuccess}) for {Process.WorkTime}\n");

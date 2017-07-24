@@ -203,7 +203,7 @@ namespace Server.Runtime {
 			var result = command.Execute(runtimeArgs);
 			Debug.WriteLine(
 				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, '{result.Message}', '{result.Result}']");
-			_process.DoneTask(_curTime, result.IsSuccess, result.Message, result.Result);
+			_process.DoneTask(_curTime, result);
 			AddTaskState(node.Name, result);
 			return result.IsSuccess;
 		}

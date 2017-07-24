@@ -11,6 +11,15 @@
 			}
 		},
 		{
+			"only_on_testServer": {
+				"check": {
+					"condition": "testServer",
+					"value": "{serverName}",
+					"silent": "true"
+				}
+			}	
+		},
+		{
 			"validate_project_root": {
 				"check_dir_exist": {
 					"path": "{root}",

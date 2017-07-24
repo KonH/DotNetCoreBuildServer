@@ -149,7 +149,7 @@ Builds:
 - dev_build (tag)
 ```
 
-You can use several servers (as many as you want), but if you don't need to duplicate builds, use unique build names at those servers (e.g. two servers: 'osxServer' and 'winServer', with builds: ['osx.x64'] and ['win.x32', 'win.x64'] respectively).
+You can use several servers (as many as you want), but if you don't need to duplicate builds, use unique build names at those servers (e.g. two servers: 'osxServer' and 'winServer', with builds: ['osx.x64'] and ['win.x32', 'win.x64'] respectively). Or you can start some builds with "check" command to execute them on concrete server.
 
 ## Limitations
 
@@ -233,6 +233,32 @@ Example:
 ```
 
 You can place this task as last place and collect all required data in its "message".
+
+### Check
+
+You can check any values to given condition, if "silent" is set to "true", full build log is skipped:
+
+```
+"only_on_testServer": {
+	"check": {
+		"condition": "testServer",
+		"value": "{serverName}",
+		"silent": "true"
+	}
+}
+```
+
+Example (next tasks run only on server with name = testServer, or failed without full log):
+
+```
+"only_on_testServer": {
+	"check": {
+		"condition": "testServer",
+		"value": "{serverName}",
+		"silent": "true"
+	}
+}
+```
 
 ### Check file exist/check dir exist
 

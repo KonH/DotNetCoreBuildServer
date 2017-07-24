@@ -37,6 +37,9 @@ namespace Server.Views {
 		}
 
 		protected override void OnBuildProcessDone() {
+			if (Process.Silent) {
+				return;
+			}
 			Console.WriteLine();
 			Console.WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
 			Console.WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
