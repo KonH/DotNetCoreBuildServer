@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Server.Runtime;
 
@@ -18,6 +19,7 @@ namespace Server.Views {
 			Server.OnHelpRequest   += OnHelpRequest;
 			Server.OnStatusRequest += OnStatusRequest;
 			Server.OnStop          += OnStop;
+			Server.LogFileChanged  += OnLogFileChanged;
 		}
 
 		protected abstract void OnCommonError(string message, bool isFatal);
@@ -134,11 +136,9 @@ namespace Server.Views {
 		}
 
 		protected string GetTasksInfo(List<BuildTask> tasks) {
-			var msg = "";
-			foreach (var task in tasks) {
-				msg += $"{GetTaskInfo(task)}\n";
-			}
-			return msg;
+			return tasks.Aggregate("", (current, task) => current + $"{GetTaskInfo(task)}\n");
 		}
+
+		protected virtual void OnLogFileChanged(string logFile) { }
 	}
 }

@@ -1,56 +1,76 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Server.Runtime;
 
 namespace Server.Views {
 	public class ConsoleServerView:BaseServerView {
+
+		public string LogFile { get; set; }
 		
 		public ConsoleServerView(BuildServer server) : base(server) { }
 
+		void WriteLine(string message = "") {
+			Console.WriteLine(message);
+			try {
+				if (!string.IsNullOrEmpty(LogFile)) {
+					File.AppendAllText(LogFile, message + '\n');
+				}
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"ConsoleServerView.WriteLine: write to log at \"{LogFile}\" failed: \"{e}\"");
+			}
+		}
+		
 		protected override void OnCommonError(string message, bool isFatal) {
-			Console.WriteLine($"Error: {message}, isFatal {isFatal}");
+			WriteLine($"Error: {message}, isFatal {isFatal}");
 		}
 		
 		protected override void OnStatusRequest() {
-			Console.Write(GetStatusMessage());
+			WriteLine(GetStatusMessage());
 		}
 
 		protected override void OnHelpRequest() {
-			Console.WriteLine();
-			Console.WriteLine(GetHelpMessage());
+			WriteLine();
+			WriteLine(GetHelpMessage());
 		}
 		
 		protected override void OnBuildProcessStarted() {
-			Console.WriteLine();
-			Console.WriteLine(GetBuildProcessStartMessage());
+			WriteLine();
+			WriteLine(GetBuildProcessStartMessage());
 		}
 		
 		protected override void OnTaskStarted(BuildTask buildTask) {
-			Console.WriteLine();
-			Console.WriteLine($"Task started: {buildTask.Node.Name}");
+			WriteLine();
+			WriteLine($"Task started: {buildTask.Node.Name}");
 		}
 		
 		protected override void OnTaskDone(BuildTask buildTask) {
-			Console.WriteLine();
-			Console.WriteLine($"Task done: {buildTask.Node.Name}");
-			Console.WriteLine(GetTaskInfo(buildTask));
+			WriteLine();
+			WriteLine($"Task done: {buildTask.Node.Name}");
+			WriteLine(GetTaskInfo(buildTask));
 		}
 
 		protected override void OnBuildProcessDone() {
 			if (Process.Silent) {
 				return;
 			}
-			Console.WriteLine();
-			Console.WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
-			Console.WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
+			WriteLine();
+			WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
+			WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
 			var lastTask = Process.Tasks.Last();
 			if (lastTask.IsSuccess) {
-				Console.WriteLine("Last task message:");
-				Console.WriteLine(lastTask.Message);
+				WriteLine("Last task message:");
+				WriteLine(lastTask.Message);
 			} else {
-				Console.WriteLine(GetTasksInfo(Process.Tasks));
+				WriteLine(GetTasksInfo(Process.Tasks));
 			}
 			base.OnBuildProcessDone();
+		}
+
+		protected override void OnLogFileChanged(string logFile) {
+			LogFile = logFile;
 		}
 	}
 }

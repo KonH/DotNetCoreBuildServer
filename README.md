@@ -56,6 +56,7 @@ Build config looks like this:
 	"args": [
 		"arg_0", "arg_1", ... "arg_N"	
 	],
+	"log_file": "path_to_logfile",
 	"tasks": [
 		{
 			"task_name": {
@@ -70,6 +71,8 @@ Build config looks like this:
 	]
 }
 ```
+
+"log_file" is optional, in this file full build output will be redirected.
 
 Any command has "message" and "result", "message" is full output, "result" can contain short info (see "run" task). You can get these values using **{taskName:message}** and **{taskName:result}** in next tasks parameter values.
 

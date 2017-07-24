@@ -17,6 +17,7 @@ namespace Server.Runtime {
 		public event Action               OnHelpRequest;
 		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
+		public event Action<string>       LogFileChanged;
 
 		
 		public Project        Project  { get; }
@@ -93,6 +94,8 @@ namespace Server.Runtime {
 			Debug.WriteLine($"BuildServer.InitBuild: {build.Name}");
 			_build = build;
 			_process = new BuildProcess(build);
+			var convertedLogFile = ConvertArgValue(Project, _build, null, build.LogFile);
+			LogFileChanged?.Invoke(convertedLogFile);
 			OnInitBuild?.Invoke(_process);
 			return true;
 		}
@@ -137,11 +140,11 @@ namespace Server.Runtime {
 					break;
 				}
 			}
+			LogFileChanged?.Invoke(null);
 			_buildArgs = null;
 			_build     = null;
 			_thread    = null;
 			_process   = null;
-
 			_taskStates = new Dictionary<string, string>();
 			Debug.WriteLine("BuildServer.ProcessBuild: cleared");
 		}
@@ -159,10 +162,12 @@ namespace Server.Runtime {
 			foreach (var key in project.Keys) {
 				result = TryReplace(result, key.Key, key.Value);
 			}
-			for (int i = 0; i < build.Args.Count; i++) {
-				var argName = build.Args[i];
-				var argValue = buildArgs[i];
-				result = TryReplace(result, argName, argValue);
+			if (buildArgs != null) {
+				for (var i = 0; i < build.Args.Count; i++) {
+					var argName = build.Args[i];
+					var argValue = buildArgs[i];
+					result = TryReplace(result, argName, argValue);
+				}
 			}
 			foreach (var state in _taskStates) {
 				result = TryReplace(result, state.Key, state.Value);

@@ -6,14 +6,16 @@ using Microsoft.Extensions.Configuration;
 namespace Server.BuildConfig {
 	public class Build {
 		
-		public string          Name  { get; }
-		public List<string>    Args  { get; }
-		public List<BuildNode> Nodes { get; }
+		public string          Name    { get; }
+		public string          LogFile { get; }
+		public List<string>    Args    { get; }
+		public List<BuildNode> Nodes   { get; }
 
-		Build(string name, IEnumerable<string> args, IEnumerable<BuildNode> nodes) {
-			Name  = name;
-			Args  = args.ToList();
-			Nodes = nodes.ToList();
+		Build(string name, string logFile, IEnumerable<string> args, IEnumerable<BuildNode> nodes) {
+			Name    = name;
+			LogFile = logFile;
+			Args    = args.ToList();
+			Nodes   = nodes.ToList();
 		}
 
 		static void ProcessTasks(IConfiguration configNode, ICollection<BuildNode> buildNodes) {
@@ -50,6 +52,7 @@ namespace Server.BuildConfig {
 			var buildNodes = new List<BuildNode>();
 			var buildArgs = new List<string>();
 			var rootNodes = config.GetChildren();
+			string logFile = null;
 			foreach (var node in rootNodes) {
 				Debug.WriteLine($"Build.Load: rootNode: '{node.Key}'");
 				// ReSharper disable once ConvertIfStatementToSwitchStatement
@@ -57,9 +60,12 @@ namespace Server.BuildConfig {
 					ProcessTasks(node, buildNodes);
 				} else if (node.Key == "args") {
 					ProcessArgs(node, buildArgs);
+				} else if (node.Key == "log_file") {
+					logFile = node.Value;
+					Debug.WriteLine($"Build.Load: Log file is \"{logFile}\"");
 				}
 			}
-			var build = new Build(name, buildArgs, buildNodes);
+			var build = new Build(name, logFile, buildArgs, buildNodes);
 			return build;
 		}
 	}

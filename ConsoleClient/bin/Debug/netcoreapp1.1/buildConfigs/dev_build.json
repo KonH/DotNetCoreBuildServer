@@ -1,7 +1,8 @@
 ﻿{
 	"args": [
-		"tag"	
+		"tag"
 	],
+	"log_file": "{root}/full_log.txt",
 	"tasks": [
 		{
 			"show_server_name": {
