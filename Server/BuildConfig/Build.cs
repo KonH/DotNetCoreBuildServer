@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace Server.BuildConfig {
@@ -14,40 +15,51 @@ namespace Server.BuildConfig {
 			Args  = args.ToList();
 			Nodes = nodes.ToList();
 		}
+
+		static void ProcessTasks(IConfiguration configNode, ICollection<BuildNode> buildNodes) {
+			var tasksContent = configNode.GetChildren();
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			foreach (var taskParentNode in tasksContent) {
+				Debug.WriteLine($"Build.Load: taskParentNode: '{taskParentNode.Key}'");
+				var taskNode = taskParentNode.GetChildren().FirstOrDefault();
+				Debug.WriteLine($"Build.Load: taskNode: '{taskNode.Key}'");
+				var nodeName = taskNode.Key;
+				var command = taskNode.GetChildren().FirstOrDefault();
+				Debug.WriteLine($"Build.Load: command: '{command?.Key}'");
+				if (command == null) {
+					continue;
+				}
+				var commandName = command.Key;
+				var args = command.GetChildren();
+				var commandArgs = args.ToDictionary(arg => arg.Key, arg => arg.Value);
+				Debug.WriteLine($"Build.Load: buildNode: ['{nodeName}', '{commandName}', {commandArgs.Count}]");
+				var buildNode = new BuildNode(nodeName, commandName, commandArgs);
+				buildNodes.Add(buildNode);
+			}
+		}
+
+		static void ProcessArgs(IConfiguration node, List<string> args) {
+			var argsContent = node.GetChildren();
+			args.AddRange(argsContent.Select(buildArg => buildArg.Value));
+			Debug.WriteLine($"Build.Load: args: {args.Count}");
+		}
 		
 		public static Build Load(string name, string path) {
 			var builder = new ConfigurationBuilder().AddJsonFile(path);
 			var config = builder.Build();
-			var nodes = new List<BuildNode>();
+			var buildNodes = new List<BuildNode>();
 			var buildArgs = new List<string>();
 			var rootNodes = config.GetChildren();
-			foreach (var rootNode in rootNodes) {
-				if (rootNode.Key == "tasks") {
-					var tasksContent = rootNode.GetChildren();
-					foreach (var taskParentNode in tasksContent) {
-						var taskNode = taskParentNode.GetChildren().FirstOrDefault();
-						var nodeName = taskNode.Key;
-						var command = taskNode.GetChildren().FirstOrDefault();
-						if (command != null) {
-							var commandName = command.Key;
-							var commandArgs = new Dictionary<string, string>();
-							var args = command.GetChildren();
-							foreach (var arg in args) {
-								commandArgs.Add(arg.Key, arg.Value);
-							}
-							var node = new BuildNode(nodeName, commandName, commandArgs);
-							nodes.Add(node);
-						}
-					}
-				}
-				if (rootNode.Key == "args") {
-					var argsContent = rootNode.GetChildren();
-					foreach (var buildArg in argsContent) {
-						buildArgs.Add(buildArg.Value);
-					}
+			foreach (var node in rootNodes) {
+				Debug.WriteLine($"Build.Load: rootNode: '{node.Key}'");
+				// ReSharper disable once ConvertIfStatementToSwitchStatement
+				if (node.Key == "tasks") {
+					ProcessTasks(node, buildNodes);
+				} else if (node.Key == "args") {
+					ProcessArgs(node, buildArgs);
 				}
 			}
-			var build = new Build(name, buildArgs, nodes);
+			var build = new Build(name, buildArgs, buildNodes);
 			return build;
 		}
 	}
