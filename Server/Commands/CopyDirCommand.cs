@@ -24,10 +24,10 @@ namespace Server.Commands {
 		}
 		
 		void CopyDirectory(string sourceDirName, string destDirName) {
-			DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+			var dir = new DirectoryInfo(sourceDirName);
 			if (!dir.Exists) {
 				throw new DirectoryNotFoundException(
-					$"Source directory does not exist or could not be found: {sourceDirName}");
+					$"Source directory does not exist or could not be found: \"{sourceDirName}\"");
 			}
 
 			var dirs = dir.GetDirectories();

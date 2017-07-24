@@ -11,11 +11,11 @@ namespace Server.Controllers {
 		}
 
 		void OnSlackMessage(string message) {
-			Debug.WriteLine($"SlackServerController.OnSlackMessage: message: {message}");
+			Debug.WriteLine($"SlackServerController.OnSlackMessage: message: \"{message}\"");
 			var parts = message.Split(' ');
 			if (parts.Length > 1) {
 				var actualMessage = string.Join(" ", parts.Skip(1).ToArray());
-				Debug.WriteLine($"SlackServerController.OnSlackMessage: actualMessage: {actualMessage}");
+				Debug.WriteLine($"SlackServerController.OnSlackMessage: actualMessage: \"{actualMessage}\"");
 				var request = ConvertMessage(actualMessage);
 				Call(request);
 			}

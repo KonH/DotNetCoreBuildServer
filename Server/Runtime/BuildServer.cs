@@ -68,7 +68,7 @@ namespace Server.Runtime {
 		
 		public BuildServer(string name, List<IService> services, params string[] projectPathes) {
 			Debug.WriteLine(
-				$"BuildServer.ctor: name: '{name}', services: {services.Count()}, pathes: {projectPathes.Length}");
+				$"BuildServer.ctor: name: \"{name}\", services: {services.Count()}, pathes: {projectPathes.Length}");
 			Name = name;
 			Project = Project.Load(name, projectPathes);
 			InitServices(services, Project);
@@ -77,7 +77,7 @@ namespace Server.Runtime {
 		void InitServices(IEnumerable<IService> services, Project project) {
 			Services = new List<IService>();
 			foreach (var service in services) {
-				Debug.WriteLine($"BuildServer.InitServices: {service.GetType().Name}");
+				Debug.WriteLine($"BuildServer.InitServices: \"{service.GetType().Name}\"");
 				var isInited = service.TryInit(this, project);
 				Debug.WriteLine($"BuildServer.InitServices: isInited: {isInited}");
 				if (isInited) {
@@ -91,7 +91,7 @@ namespace Server.Runtime {
 				RaiseCommonError("InitBuild: server is busy!", true);
 				return false;
 			}
-			Debug.WriteLine($"BuildServer.InitBuild: {build.Name}");
+			Debug.WriteLine($"BuildServer.InitBuild: \"{build.Name}\"");
 			_build = build;
 			_process = new BuildProcess(build);
 			var convertedLogFile = ConvertArgValue(Project, _build, null, build.LogFile);
@@ -129,7 +129,7 @@ namespace Server.Runtime {
 				_process.Abort(_curTime);
 			}
 			foreach (var node in nodes) {
-				Debug.WriteLine($"BuildServer.ProcessBuild: node: {node.Name} ({node.Command})");
+				Debug.WriteLine($"BuildServer.ProcessBuild: node: \"{node.Name}\" (\"{node.Command}\")");
 				var result = ProcessCommand(_build, _buildArgs, node);
 				if (!result) {
 					Debug.WriteLine($"BuildServer.ProcessBuild: failed command!");
@@ -172,7 +172,7 @@ namespace Server.Runtime {
 			foreach (var state in _taskStates) {
 				result = TryReplace(result, state.Key, state.Value);
 			}
-			Debug.WriteLine($"BuildServer.ConvertArgValue: '{value}' => '{result}'");
+			Debug.WriteLine($"BuildServer.ConvertArgValue: \"{value}\" => \"{result}\"");
 			return result;
 		}
 
@@ -199,15 +199,15 @@ namespace Server.Runtime {
 		}
 		
 		bool ProcessCommand(Build build, string[] buildArgs, BuildNode node) {
-			Debug.WriteLine($"BuildServer.ProcessCommand: {node.Name} ({node.Command})");
+			Debug.WriteLine($"BuildServer.ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
-			Debug.WriteLine($"BuildServer.ProcessCommand: command is {command.GetType().Name}");
+			Debug.WriteLine($"BuildServer.ProcessCommand: command is \"{command.GetType().Name}\"");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			Debug.WriteLine($"BuildServer.ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
 			var result = command.Execute(runtimeArgs);
 			Debug.WriteLine(
-				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, '{result.Message}', '{result.Result}']");
+				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
 			_process.DoneTask(_curTime, result);
 			AddTaskState(node.Name, result);
 			return result.IsSuccess;
@@ -221,7 +221,7 @@ namespace Server.Runtime {
 		void AddTaskState(string taskName, string key, string value) {
 			var fullKey = $"{taskName}:{key}";
 			_taskStates.Add(fullKey, value);
-			Debug.WriteLine($"BuildServer.AddTaskState: '{fullKey}'=>'{value}'");
+			Debug.WriteLine($"BuildServer.AddTaskState: \"{fullKey}\"=>\"{value}\"");
 		}
 		
 		public void RequestStatus() {
@@ -243,7 +243,7 @@ namespace Server.Runtime {
 		}
 
 		public void RaiseCommonError(string message, bool isFatal) {
-			Debug.WriteLine($"BuildServer.RaiseCommonError: {message}");
+			Debug.WriteLine($"BuildServer.RaiseCommonError: \"{message}\", isFatal: {isFatal}");
 			OnCommonError?.Invoke(message, isFatal);
 		}
 	}

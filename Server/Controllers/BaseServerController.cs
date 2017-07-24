@@ -23,12 +23,12 @@ namespace Server.Controllers {
 		}
 		
 		void AddHandler(string name, Action<RequestArgs> handler) {
-			Debug.WriteLine($"BaseServerController.AddHandler: '{name}' => {handler.GetMethodInfo().Name}");
+			Debug.WriteLine($"BaseServerController.AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
 			_handlers.Add(name, handler);
 		}
 
 		void AddHandler(string name, Action handler) {
-			Debug.WriteLine($"BaseServerController.AddHandler: '{name}' => {handler.GetMethodInfo().Name}");
+			Debug.WriteLine($"BaseServerController.AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
 			_handlers.Add(name, (_) => handler.Invoke());
 		}
 
@@ -77,19 +77,19 @@ namespace Server.Controllers {
 			}
 			var request = allParts[0];
 			var requestArgs = new RequestArgs(allParts.Skip(1));
-			Debug.WriteLine($"BaseServerController: '{message}' => ['{request}', '{requestArgs.Count}']");
+			Debug.WriteLine($"BaseServerController: \"{message}\" => [\"{request}\", {requestArgs.Count}]");
 			return new ServerRequest(request, requestArgs);
 		}
 		
 		protected void Call(ServerRequest request) {
-			Debug.WriteLine($"BaseServerController.Call: '{request.Request}'");
+			Debug.WriteLine($"BaseServerController.Call: \"{request.Request}\"");
 			if (!request.IsValid) {
 				Debug.WriteLine("BaseServerController.Call: invalid request, call 'help'");
 				_handlers["help"]?.Invoke(request.Args);
 				return;
 			}
 			var handler = _handlers.Get(request.Request);
-			Debug.WriteLine($"BaseServerController.Call: handler: {handler} (is null: {handler == null})");
+			Debug.WriteLine($"BaseServerController.Call: handler: \"{handler}\" (is null: {handler == null})");
 			handler?.Invoke(request.Args);
 		}
 	}

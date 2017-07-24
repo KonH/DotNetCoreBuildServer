@@ -22,19 +22,19 @@ namespace Server.BuildConfig {
 			var tasksContent = configNode.GetChildren();
 			// ReSharper disable once LoopCanBeConvertedToQuery
 			foreach (var taskParentNode in tasksContent) {
-				Debug.WriteLine($"Build.Load: taskParentNode: '{taskParentNode.Key}'");
+				Debug.WriteLine($"Build.Load: taskParentNode: \"{taskParentNode.Key}\"");
 				var taskNode = taskParentNode.GetChildren().FirstOrDefault();
-				Debug.WriteLine($"Build.Load: taskNode: '{taskNode.Key}'");
+				Debug.WriteLine($"Build.Load: taskNode: \"{taskNode.Key}\"");
 				var nodeName = taskNode.Key;
 				var command = taskNode.GetChildren().FirstOrDefault();
-				Debug.WriteLine($"Build.Load: command: '{command?.Key}'");
+				Debug.WriteLine($"Build.Load: command: \"{command?.Key}\"");
 				if (command == null) {
 					continue;
 				}
 				var commandName = command.Key;
 				var args = command.GetChildren();
 				var commandArgs = args.ToDictionary(arg => arg.Key, arg => arg.Value);
-				Debug.WriteLine($"Build.Load: buildNode: ['{nodeName}', '{commandName}', {commandArgs.Count}]");
+				Debug.WriteLine($"Build.Load: buildNode: [\"{nodeName}\", \"{commandName}\", {commandArgs.Count}]");
 				var buildNode = new BuildNode(nodeName, commandName, commandArgs);
 				buildNodes.Add(buildNode);
 			}
@@ -54,7 +54,7 @@ namespace Server.BuildConfig {
 			var rootNodes = config.GetChildren();
 			string logFile = null;
 			foreach (var node in rootNodes) {
-				Debug.WriteLine($"Build.Load: rootNode: '{node.Key}'");
+				Debug.WriteLine($"Build.Load: rootNode: \"{node.Key}\"");
 				// ReSharper disable once ConvertIfStatementToSwitchStatement
 				if (node.Key == "tasks") {
 					ProcessTasks(node, buildNodes);

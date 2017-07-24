@@ -33,7 +33,7 @@ namespace Server.Integrations {
 				return InitBot(server, name, token, hub);
 			}
 			Debug.WriteLine(
-				$"SlackService.TryInit: wrong arguments: name: '{name}', token: '{token}', hub: '{hub}'");
+				$"SlackService.TryInit: wrong arguments: name: \"{name}\", token: \"{token}\", hub: \"{hub}\"");
 			return false;
 		}
 		
@@ -43,7 +43,7 @@ namespace Server.Integrations {
 			try {
 				InitBotAsync(token).GetAwaiter().GetResult();
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.InitBot: exception: {e}");
+				Debug.WriteLine($"SlackService.InitBot: exception: \"{e}\"");
 				return false;
 			}
 			_bot.When(_bot.State.BotUserId, conv => {
@@ -60,13 +60,13 @@ namespace Server.Integrations {
 		}
 
 		public async void SendMessage(string message) {
-			Debug.WriteLine($"SlackService.SendMessage: '{message}'");
+			Debug.WriteLine($"SlackService.SendMessage: \"{message}\"");
 			var hubState = _bot.State.GetHub(_hub);
 			var fullMessage = string.Format("[{0}]\n {1}", _name, message);
 			try {
 				await _bot.SendAsync(hubState, fullMessage);
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.SendMessage: exception: ${e}");
+				Debug.WriteLine($"SlackService.SendMessage: exception: \"{e}\"");
 			}
 		}
 	}

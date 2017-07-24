@@ -52,7 +52,7 @@ namespace Server.Runtime {
 		}
 		
 		public void StartTask(BuildNode node) {
-			Debug.WriteLine($"BuildProcess.StartTask: Node: {node.Name}");
+			Debug.WriteLine($"BuildProcess.StartTask: Node: \"{node.Name}\"");
 			var task = FindTask(node);
 			if (task != null) {
 				Debug.WriteLine($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
