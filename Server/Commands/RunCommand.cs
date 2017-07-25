@@ -7,9 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace Server.Commands {
 	[CommandAttribute("run")]
-	public class RunCommand:ICommand {
+	public class RunCommand:ICommand, IAbortableCommand {
 
 		string _inMemoryLog = "";
+		bool   _isAborted   = false;
 		
 		public CommandResult Execute(Dictionary<string, string> args) {
 			if (args == null) {
@@ -37,9 +38,15 @@ namespace Server.Commands {
 				using (var logStream = OpenLogFile(logFile)) {
 					ReadOutputAsync(process.StandardOutput, logStream);
 					ReadOutputAsync(process.StandardError, logStream);
-					process.WaitForExit();
+					while (!process.HasExited) {
+						if (_isAborted) {
+							process.Kill();
+						}
+					}
 				}
-				
+				if (_isAborted) {
+					throw new CommandAbortedException();
+				}
 				var errorRegex = args.Get("error_regex");
 				var resultRegex = args.Get("result_regex");
 				if (!string.IsNullOrEmpty(logFile)) {
@@ -55,8 +62,15 @@ namespace Server.Commands {
 				}
 			}
 			catch (Exception e) {
+				if (e is CommandAbortedException) {
+					return CommandResult.Fail($"Command is aborted!");
+				}
 				return CommandResult.Fail($"Failed to run process at \"{path}\": \"{e.ToString()}\"");
 			}
+		}
+
+		public void Abort() {
+			_isAborted = true;
 		}
 
 		string GetResultMessage(string resultRegex, string message) {

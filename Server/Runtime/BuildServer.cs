@@ -61,6 +61,7 @@ namespace Server.Runtime {
 		Build        _build;
 		Thread       _thread;
 		BuildProcess _process;
+		ICommand     _curCommand;
 		
 		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
 		
@@ -197,10 +198,12 @@ namespace Server.Runtime {
 			Debug.WriteLine($"BuildServer.ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
 			_process.StartTask(node);
 			var command = CommandFactory.Create(node);
+			_curCommand = command;
 			Debug.WriteLine($"BuildServer.ProcessCommand: command is \"{command.GetType().Name}\"");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			Debug.WriteLine($"BuildServer.ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
 			var result = command.Execute(runtimeArgs);
+			_curCommand = null;
 			Debug.WriteLine(
 				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
 			_process.DoneTask(_curTime, result);
@@ -226,7 +229,16 @@ namespace Server.Runtime {
 
 		public void AbortBuild() {
 			Debug.WriteLine($"BuildServer.AbortBuild: hasProcess: {_process != null}");
-			_process?.Abort(_curTime);
+			var proc = _process;
+			if(proc != null ) {
+				Debug.WriteLine("BuildServer.AbortBuild: Abort running process");
+				proc.Abort(_curTime);
+			}
+			var abortableCommand = _curCommand as IAbortableCommand;
+			if (abortableCommand != null) {
+				Debug.WriteLine("BuildServer.AbortBuild: Abort running command");
+				abortableCommand.Abort();
+			}
 		}
 		
 		public void StopServer() {

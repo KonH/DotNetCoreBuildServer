@@ -112,7 +112,7 @@ You can control your server with commands described below:
 ```
 - "status" - current server status
 - "build arg0 arg1 ... argN" - start build with given parameters
-- "abort" - stop current build after current task is done
+- "abort" - stop current build immediately
 - "help" - show this message
 - "stop" - stop server
 ```
