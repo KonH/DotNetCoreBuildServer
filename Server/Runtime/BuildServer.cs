@@ -114,11 +114,6 @@ namespace Server.Runtime {
 			_thread = new Thread(ProcessBuild);
 			_thread.Start();
 		}
-		
-		public void StopBuild() {
-			Debug.WriteLine($"BuildServer.StopBuild: hasProcess: {_process != null}");
-			_process?.Abort(_curTime);
-		}
 
 		void ProcessBuild() {
 			Debug.WriteLine("BuildServer.ProcessBuild");
@@ -229,9 +224,14 @@ namespace Server.Runtime {
 			OnStatusRequest?.Invoke();
 		}
 
+		public void AbortBuild() {
+			Debug.WriteLine($"BuildServer.AbortBuild: hasProcess: {_process != null}");
+			_process?.Abort(_curTime);
+		}
+		
 		public void StopServer() {
 			Debug.WriteLine($"BuildServer.StopServer: hasProcess: {_process != null}");
-			StopBuild();
+			AbortBuild();
 			while (_process != null) {}
 			OnStop?.Invoke();
 			Debug.WriteLine("BuildServer.StopServer: done");

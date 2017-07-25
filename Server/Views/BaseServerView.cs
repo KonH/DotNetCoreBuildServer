@@ -28,9 +28,10 @@ namespace Server.Views {
 			var sb = new StringBuilder();
 			sb.Append("Commands:\n");
 			sb.Append("- \"status\" - current server status\n");
-			sb.Append("- \"stop\" - stop current build, if it is started\n");
 			sb.Append("- \"build arg0 arg1 ... argN\" - start build with given parameters\n");
+			sb.Append("- \"abort\" - stop current build after current task is done\n");
 			sb.Append("- \"help\" - show this message\n");
+			sb.Append("- \"stop\" - stop server\n");
 			return sb.ToString();
 		}
 

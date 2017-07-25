@@ -19,6 +19,7 @@ namespace Server.Controllers {
 			AddHandler("status", RequestStatus);
 			AddHandler("build",  StartBuild);
 			AddHandler("stop",   StopServer);
+			AddHandler("abort",  AbortBuild);
 			Server = server;
 		}
 		
@@ -63,6 +64,11 @@ namespace Server.Controllers {
 				var buildArgs = args.Skip(1).ToArray();
 				Server.StartBuild(buildArgs);
 			}
+		}
+
+		protected void AbortBuild() {
+			Debug.WriteLine("AbortBuild");
+			Server.AbortBuild();
 		}
 
 		protected void StopServer() {
