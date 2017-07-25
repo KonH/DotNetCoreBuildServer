@@ -1,6 +1,6 @@
 # DotNetCoreBuildServer
 
-**DotNetCoreBuildServer** is a build system based on **.NET Core** (netstandard1.4). It allows you to run batch of actions (check/copy directory/files, run external tools) and collect results in a simple way. Also, it provides **Slack** integration.
+**DotNetCoreBuildServer** is a build system based on **.NET Core** (netstandard1.6). It allows you to run batch of actions (check/copy directory/files, run external tools) and collect results in a simple way. Also, it provides **Slack** integration.
 
 ## Configuration
 
