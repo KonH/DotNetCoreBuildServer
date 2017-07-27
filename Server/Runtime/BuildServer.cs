@@ -154,6 +154,9 @@ namespace Server.Runtime {
 		}
 		
 		string ConvertArgValue(Project project, Build build, string[] buildArgs, string value) {
+			if ( value == null ) {
+				return value;
+			}
 			var result = value;
 			foreach (var key in project.Keys) {
 				result = TryReplace(result, key.Key, key.Value);
