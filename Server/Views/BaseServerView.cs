@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Server.BuildConfig;
 using Server.Runtime;
 
 namespace Server.Views {
@@ -54,7 +55,21 @@ namespace Server.Views {
 				sb.Append($"- {service.GetType().Name}\n");
 			}
 			sb.Append("Builds:\n");
-			foreach (var build in Server.Builds) {
+			var builds = Server.FindBuilds();
+			AppendBuildsInfo(sb, builds);
+			return sb.ToString();
+		}
+
+		void AppendBuildsInfo(StringBuilder sb, Dictionary<string, Build> builds) {
+			if (builds == null) {
+				sb.Append("Failed to load builds directory!\n");
+				return;
+			}
+			if (builds.Count == 0) {
+				sb.Append("No builds found!\n");
+				return;
+			}
+			foreach (var build in builds) {
 				sb.Append($"- {build.Key}");
 				var args = build.Value.Args;
 				if (args.Count > 0) {
@@ -70,7 +85,6 @@ namespace Server.Views {
 				}
 				sb.Append("\n");
 			}
-			return sb.ToString();
 		}
 		
 		protected abstract void OnStatusRequest();

@@ -19,41 +19,15 @@ namespace Server.Runtime {
 		public event Action               OnStop;
 		public event Action<string>       LogFileChanged;
 
-		
-		public Project        Project  { get; }
-		public List<IService> Services { get; private set; }
 		public string         Name     { get; }
+		public Project        Project  { get; private set; }
+		public List<IService> Services { get; private set; }
 		
 		public string ServiceName {
 			get {
 				var assembly = GetType().GetTypeInfo().Assembly;
 				var name = assembly.GetName();
 				return $"{name.Name} {name.Version}";
-			}
-		}
-		
-		string ConvertToBuildName(FileInfo file) {
-			var ext = file.Extension;
-			return file.Name.Substring(0, file.Name.Length - ext.Length);
-		}
-		
-		public Dictionary<string, Build> Builds {
-			get {
-				var dict = new Dictionary<string, Build>();
-				var buildsPath = Project.BuildsRoot;
-				if (Directory.Exists(buildsPath)) {
-					var files = Directory.EnumerateFiles(buildsPath, "*.json");
-					foreach (var filePath in files) {
-						var file = new FileInfo(filePath);
-						var name = ConvertToBuildName(file);
-						var fullPath = file.FullName;
-						var build = Build.Load(name, fullPath);
-						if (build != null) {
-							dict.Add(name, build);
-						}
-					}
-				}
-				return dict;
 			}
 		}
 		
@@ -67,14 +41,55 @@ namespace Server.Runtime {
 		
 		DateTime _curTime => DateTime.Now;
 		
-		public BuildServer(string name, List<IService> services, params string[] projectPathes) {
-			Debug.WriteLine(
-				$"BuildServer.ctor: name: \"{name}\", services: {services.Count()}, pathes: {projectPathes.Length}");
+		public BuildServer(string name) {
+			Debug.WriteLine($"BuildServer.ctor: name: \"{name}\"");
 			Name = name;
-			Project = Project.Load(name, projectPathes);
-			InitServices(services, Project);
 		}
 
+		static string ConvertToBuildName(FileSystemInfo file) {
+			var ext = file.Extension;
+			return file.Name.Substring(0, file.Name.Length - ext.Length);
+		}
+		
+		public Dictionary<string, Build> FindBuilds() {
+			var dict = new Dictionary<string, Build>();
+			var buildsPath = Project.BuildsRoot;
+			if (!Directory.Exists(buildsPath)) {
+				return null;
+			}
+			var files = Directory.EnumerateFiles(buildsPath, "*.json");
+			foreach (var filePath in files) {
+				var file = new FileInfo(filePath);
+				var name = ConvertToBuildName(file);
+				var fullPath = file.FullName;
+				try {
+					var build = Build.Load(name, fullPath);
+					dict.Add(name, build);
+				} catch (Exception e) {
+					RaiseCommonError($"Failed to load build at \"{fullPath}\": \"{e}\"", true);	
+				}
+			}
+			return dict;
+		}
+		
+		public bool TryInitialize(out string errorMessage, List<IService> services, params string[] projectPathes) {
+			Debug.WriteLine(
+				$"BuildServer.TryInitialize: services: {services.Count()}, pathes: {projectPathes.Length}");
+			try {
+				Project = Project.Load(Name, projectPathes);
+			} catch (Exception e) {
+				errorMessage = $"Failed to parse project settings: \"{e}\"";
+				return false;
+			}
+			InitServices(services, Project);
+			if (FindBuilds() == null) {
+				errorMessage = $"Failed to load builds directory!";
+				return false;
+			}
+			errorMessage = string.Empty;
+			return true;
+		}
+		
 		void InitServices(IEnumerable<IService> services, Project project) {
 			Services = new List<IService>();
 			foreach (var service in services) {
@@ -155,7 +170,7 @@ namespace Server.Runtime {
 		
 		string ConvertArgValue(Project project, Build build, string[] buildArgs, string value) {
 			if ( value == null ) {
-				return value;
+				return null;
 			}
 			var result = value;
 			foreach (var key in project.Keys) {

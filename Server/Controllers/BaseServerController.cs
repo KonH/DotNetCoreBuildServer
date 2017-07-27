@@ -50,7 +50,12 @@ namespace Server.Controllers {
 			}
 			var buildName = args[0];
 			Build build;
-			if (!Server.Builds.TryGetValue(buildName, out build)) {
+			var builds = Server.FindBuilds();
+			if (builds == null) {
+				Server.RaiseCommonError("StartBuild: Failed to load builds directory!", true);
+				return;
+			}
+			if (!builds.TryGetValue(buildName, out build)) {
 				Server.RaiseCommonError("StartBuild: Wrong build name!", false);
 				return;
 			}

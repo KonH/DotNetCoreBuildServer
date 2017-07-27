@@ -20,7 +20,13 @@ namespace ConsoleClient {
 				consoleService,
 				new SlackService()
 			};
-			var server = new BuildServer(serverName, services, serverArgs);
+			var server = new BuildServer(serverName);
+			string startUpError = null;
+			if (!server.TryInitialize(out startUpError, services, serverArgs)) {
+				Console.WriteLine(startUpError);
+				Console.WriteLine("Closing...");
+				return;
+			}
 			Console.WriteLine($"{server.ServiceName} started and ready to use.");
 			consoleService.Process();
 		}
