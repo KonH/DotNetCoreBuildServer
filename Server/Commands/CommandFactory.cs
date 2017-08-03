@@ -51,5 +51,9 @@ namespace Server.Commands {
 			var commandInstance = Activator.CreateInstance(commandType) as ICommand;
 			return commandInstance;
 		}
+
+		public static bool ContainsHandler(string command) {
+			return Commands.ContainsKey(command);
+		}
 	}
 }

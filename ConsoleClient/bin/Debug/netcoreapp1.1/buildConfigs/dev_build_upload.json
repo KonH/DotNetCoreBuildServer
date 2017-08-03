@@ -1,0 +1,79 @@
+﻿{
+	"args": [
+		"tag"
+	],
+	"tasks": [
+		{
+			"clean_upload": {
+				"run": {
+					"path": "svn",
+					"args": "cleanup",
+					"work_dir": "{root}/local_svn",
+					"error_regex": "error"
+				}
+			}
+		},
+		{
+			"update_upload": {
+				"run": {
+					"path": "svn",
+					"args": "update",
+					"work_dir": "{root}/local_svn",
+					"error_regex": "error"
+				}
+			}
+		},
+		{
+			"copy_to_upload": {
+				"copy_file": {
+					"from": "{root}/build.txt",
+					"to": "{root}/local_svn/build.txt"
+				}
+			}
+		},
+		{
+			"add_build": {
+				"run": {
+					"path": "svn",
+					"args": "add . --force",
+					"work_dir": "{root}/local_svn",
+					"error_regex": "error"
+				}
+			}
+		},
+		{
+			"upload_build": {
+				"run": {
+					"path": "svn",
+					"args": "commit -m \"Build for {tag}.\"",
+					"work_dir": "{root}/local_svn",
+					"error_regex": "(error|Commit failed)",
+					"log_file": "{root}/upload_log.txt",
+					"result_regex": "(?<=Committed revision )([0-9]*)"
+				}
+			}
+		},
+		{
+			"make_new_dir": {
+				"make_dir": {
+					"path": "{root}/newDirectory"
+				}
+			}
+		},
+		{
+			"make_new_file": {
+				"make_file": {
+					"path": "{root}/newFile.txt",
+					"content": "{upload_build:message}"
+				}
+			}	
+		},
+		{
+			"build_report": {
+				"print": {
+					"message": "Build result rev.{upload_build:result}"
+				}
+			}
+		}
+	]
+}

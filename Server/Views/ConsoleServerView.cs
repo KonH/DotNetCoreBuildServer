@@ -24,7 +24,7 @@ namespace Server.Views {
 		}
 		
 		protected override void OnCommonError(string message, bool isFatal) {
-			WriteLine($"Error: {message}, isFatal {isFatal}");
+			WriteLine($"Error: {message}, isFatal: {isFatal}");
 		}
 		
 		protected override void OnStatusRequest() {

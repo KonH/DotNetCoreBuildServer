@@ -4,5 +4,6 @@ ConsoleClient/bin
 ConsoleClient/obj
 !ConsoleClient/bin/Debug/netcoreapp1.1/project.json
 !ConsoleClient/bin/Debug/netcoreapp1.1/buildConfigs/dev_build.json
+!ConsoleClient/bin/Debug/netcoreapp1.1/buildConfigs/dev_build_upload.json
 .vs/
 Server/bin/

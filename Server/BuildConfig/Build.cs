@@ -25,19 +25,35 @@ namespace Server.BuildConfig {
 				Debug.WriteLine($"Build.Load: taskParentNode: \"{taskParentNode.Key}\"");
 				var taskNode = taskParentNode.GetChildren().FirstOrDefault();
 				Debug.WriteLine($"Build.Load: taskNode: \"{taskNode.Key}\"");
-				var nodeName = taskNode.Key;
-				var command = taskNode.GetChildren().FirstOrDefault();
-				Debug.WriteLine($"Build.Load: command: \"{command?.Key}\"");
-				if (command == null) {
-					continue;
+				var buildNode = ExtractBuildNode(taskNode);
+				if (buildNode != null) {
+					buildNodes.Add(buildNode);
 				}
-				var commandName = command.Key;
-				var args = command.GetChildren();
-				var commandArgs = args.ToDictionary(arg => arg.Key, arg => arg.Value);
-				Debug.WriteLine($"Build.Load: buildNode: [\"{nodeName}\", \"{commandName}\", {commandArgs.Count}]");
-				var buildNode = new BuildNode(nodeName, commandName, commandArgs);
-				buildNodes.Add(buildNode);
 			}
+		}
+
+		static BuildNode ExtractBuildNode(IConfigurationSection taskNode) {
+			var nodeName = taskNode.Key;
+			if (nodeName == "_build") {
+				return ExtractSubBuildNode(taskNode);
+			}
+			var command = taskNode.GetChildren().FirstOrDefault();
+			Debug.WriteLine($"Build.Load: command: \"{command?.Key}\"");
+			if (command == null) {
+				return null;
+			}
+			var commandName = command.Key;
+			var args = command.GetChildren();
+			var commandArgs = args.ToDictionary(arg => arg.Key, arg => arg.Value);
+			Debug.WriteLine($"Build.Load: buildNode: [\"{nodeName}\", \"{commandName}\", {commandArgs.Count}]");
+			var buildNode = new BuildNode(nodeName, commandName, commandArgs);
+			return buildNode;
+		}
+
+		static BuildNode ExtractSubBuildNode(IConfigurationSection taskNode) {
+			var buildName = taskNode.Value;
+			Debug.WriteLine($"Sub-build name: \"{buildName}\"");
+			return new SubBuildNode(buildName);
 		}
 
 		static void ProcessArgs(IConfiguration node, List<string> args) {

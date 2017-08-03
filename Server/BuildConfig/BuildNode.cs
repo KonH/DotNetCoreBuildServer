@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Server.BuildConfig {
-	public class BuildNode {
-		
+	public class BuildNode {		
 		public string                     Name    { get; }
 		public string                     Command { get; }
 		public Dictionary<string, string> Args    { get; }

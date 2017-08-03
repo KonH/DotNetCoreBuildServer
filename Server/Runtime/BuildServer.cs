@@ -52,7 +52,7 @@ namespace Server.Runtime {
 		}
 		
 		public Dictionary<string, Build> FindBuilds() {
-			var dict = new Dictionary<string, Build>();
+			var tempDict = new Dictionary<string, Build>();
 			var buildsPath = Project.BuildsRoot;
 			if (!Directory.Exists(buildsPath)) {
 				return null;
@@ -64,12 +64,55 @@ namespace Server.Runtime {
 				var fullPath = file.FullName;
 				try {
 					var build = Build.Load(name, fullPath);
-					dict.Add(name, build);
+					tempDict.Add(name, build);
 				} catch (Exception e) {
 					RaiseCommonError($"Failed to load build at \"{fullPath}\": \"{e}\"", true);	
 				}
 			}
-			return dict;
+			var resultDict = new Dictionary<string, Build>();
+			foreach (var buildPair in tempDict) {
+				try {
+					var build = buildPair.Value;
+					ProcessSubBuilds(build, tempDict);
+					ValidateBuild(build);
+					resultDict.Add(buildPair.Key, build);
+				} catch(Exception e) {
+					RaiseCommonError($"Failed to process build \"{buildPair.Key}\" : \"{e}\"", true);
+				}
+			}
+			return resultDict;
+		}
+
+		void ValidateBuild(Build build) {
+			foreach (var node in build.Nodes) {
+				ValidateNode(node);
+			}
+		}
+
+		void ValidateNode(BuildNode node) {
+			if (string.IsNullOrEmpty(node.Command) || !CommandFactory.ContainsHandler(node.Command)) {
+				throw new CommandNotFoundException(node.Command);
+			}
+		}
+
+		void ProcessSubBuilds(Build build, Dictionary<string, Build> builds) {
+			var nodes = build.Nodes;
+			for (int i = 0; i < nodes.Count; i++) {
+				var node = build.Nodes[i];
+				var subBuildNode = node as SubBuildNode;
+				if (subBuildNode == null) {
+					continue;
+				}
+				var subBuildName = subBuildNode.Name;
+				Debug.WriteLine($"Process sub build node: \"{subBuildName}\"");
+				Build subBuild;
+				if (!builds.TryGetValue(subBuildName, out subBuild)) {
+					throw new SubBuildNotFoundException(subBuildName);
+				}
+				ProcessSubBuilds(subBuild, builds);
+				nodes.RemoveAt(i);
+				nodes.InsertRange(i, subBuild.Nodes);
+			}
 		}
 		
 		public bool TryInitialize(out string errorMessage, List<IService> services, params string[] projectPathes) {

@@ -80,6 +80,21 @@ Full list of commands you can see at **Tasks** section.
 
 Also, you can look at full example [here](https://github.com/KonH/DotNetCoreBuildServer/blob/master/ConsoleClient/bin/Debug/netcoreapp1.1/buildConfigs/dev_build.json). 
 
+### Sub-builds
+
+You can include one build into another build using this syntax in task list:
+
+```
+{
+	"_build": "sub_build_name"
+ }
+```
+All tasks in sub build will be inserted in position of "_build" task.
+
+It allow you to re-use tasks and avoid code redundancy.
+
+**Limitation:** sub-build can't contains arguments, which doesn't exist in parent build. 
+
 ## Start
 
 You need [dotnet](https://www.microsoft.com/net/download/core) runtime installed. Next steps is osX based, but Windows is also supported:
