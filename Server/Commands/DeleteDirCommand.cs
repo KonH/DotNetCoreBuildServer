@@ -15,7 +15,14 @@ namespace Server.Commands {
 				return CommandResult.Fail("No path provided!");
 			}
 			var recursive = args.Get("recursive");
+			var ifExist = args.Get("if_exist");
 			try {
+				var ifExistValue = !string.IsNullOrEmpty(ifExist) && bool.Parse(ifExist);
+				if ( !Directory.Exists(path) ) {
+					return ifExistValue ?
+						CommandResult.Fail($"Directory \"{path}\" does not exists!") :
+						CommandResult.Success();
+				}
 				var recursiveValue = !string.IsNullOrEmpty(recursive) && bool.Parse(recursive);
 				Directory.Delete(path, recursiveValue);
 				return CommandResult.Success($"Directory \"{path}\" deleted.");

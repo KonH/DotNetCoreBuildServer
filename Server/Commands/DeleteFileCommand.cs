@@ -18,9 +18,9 @@ namespace Server.Commands {
 			try {
 				var ifExistValue = !string.IsNullOrEmpty(ifExist) && bool.Parse(ifExist);
 				if (!File.Exists(path)) {
-					return ifExistValue ? 
-						CommandResult.Success() : 
-						CommandResult.Fail($"File \"{path}\" does not exists!");
+					return ifExistValue ?
+						CommandResult.Fail($"File \"{path}\" does not exists!") :
+						CommandResult.Success();
 				}
 				File.Delete(path);
 				return CommandResult.Success($"File \"{path}\" deleted.");
