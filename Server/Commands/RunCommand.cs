@@ -95,6 +95,7 @@ namespace Server.Commands {
 			if (!string.IsNullOrEmpty(line)) {
 				var endedLine = line + "\n";
 				if (logStream != null) {
+					Debug.WriteLine($"RunCommand.ReadOutputAsync: line: \"{line}\"");
 					var bytes = Encoding.UTF8.GetBytes(endedLine);
 					logStream.Write(bytes, 0, bytes.Length);
 				} else {
