@@ -45,7 +45,7 @@ namespace Server.Commands {
 			var files = dir.GetFiles();
 			foreach (var file in files) {
 				var temppath = Path.Combine(destDirName, file.Name);
-				file.CopyTo(temppath, false);
+				file.CopyTo(temppath, true);
 			}
 			foreach (DirectoryInfo subdir in dirs) {
 				var temppath = Path.Combine(destDirName, subdir.Name);

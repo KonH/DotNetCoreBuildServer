@@ -42,14 +42,14 @@ namespace Server.Commands {
 				process.Start();
 				var isExternalLogValue = !string.IsNullOrEmpty(isExternalLog) && bool.Parse(isExternalLog);
 				Debug.WriteLine($"RunCommand.Execute: logFile: \"{logFile}\", isExternalLog: {isExternalLogValue}");
-				using (var logStream = OpenLogFile(logFile, isExternalLogValue) ) {
+				using ( var logStream = OpenLogFile(logFile, isExternalLogValue) ) {
 					Debug.WriteLine($"RunCommand.Execute: Used logStream: {(logStream != null ? logStream.ToString() : "null")}");
 					ReadOutputAsync(process.StandardOutput, logStream);
 					ReadOutputAsync(process.StandardError, logStream);
-				}
-				while ( !process.HasExited ) {
-					if ( _isAborted ) {
-						process.Kill();
+					while ( !process.HasExited ) {
+						if ( _isAborted ) {
+							process.Kill();
+						}
 					}
 				}
 				if (_isAborted) {
@@ -122,7 +122,15 @@ namespace Server.Commands {
 				if (logStream != null) {
 					Debug.WriteLine($"RunCommand.ReadOutputAsync: line: \"{line}\"");
 					var bytes = Encoding.UTF8.GetBytes(endedLine);
-					logStream.Write(bytes, 0, bytes.Length);
+					try {
+						if ( logStream.CanWrite ) {
+							logStream.Write(bytes, 0, bytes.Length);
+						} else {
+							Debug.WriteLine($"RunCommand.ReadOutputAsync: Can't write to LogStream.");
+						}
+					} catch (Exception e) {
+						Debug.WriteLine($"RunCommand.ReadOutputAsync: exception: \"{e}\"");
+					}
 				} else {
 					_inMemoryLog += endedLine;
 				}
