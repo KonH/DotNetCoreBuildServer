@@ -69,7 +69,7 @@
 			"clean_project": {
 				"delete_file": {
 					"path": "{root}/build.txt",
-					"if_exist": "true"
+					"if_exist": "false"
 				}
 			}
 		},
@@ -99,7 +99,11 @@
 			}
 		},
 		{
-			"_build": "dev_build_upload"
+			"_build": {
+				"dev_build_upload": {
+					"message": "My build message:"
+				}
+			}
 		}
 	]
 }

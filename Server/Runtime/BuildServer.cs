@@ -104,14 +104,34 @@ namespace Server.Runtime {
 					continue;
 				}
 				var subBuildName = subBuildNode.Name;
-				Debug.WriteLine($"Process sub build node: \"{subBuildName}\"");
+				Debug.WriteLine($"BuildServer.ProcessSubBuilds: Process sub build node: \"{subBuildName}\"");
 				Build subBuild;
 				if (!builds.TryGetValue(subBuildName, out subBuild)) {
 					throw new SubBuildNotFoundException(subBuildName);
 				}
 				ProcessSubBuilds(subBuild, builds);
 				nodes.RemoveAt(i);
-				nodes.InsertRange(i, subBuild.Nodes);
+				var subNodes = subBuild.Nodes;
+				var newNodes = new List<BuildNode>();
+				foreach (var subNode in subNodes) {
+					var newArgs = new Dictionary<string, string>();
+					foreach (var subBuildArg in subBuildNode.Args) {
+						var sbKey = subBuildArg.Key;
+						var sbValue = subBuildArg.Value;
+						foreach (var subNodeArg in subNode.Args) {
+							if (!newArgs.ContainsKey(subNodeArg.Key)) {
+								newArgs.Add(subNodeArg.Key, string.Empty);
+							}
+							var subNodeValue = subNodeArg.Value;
+							var newValue = TryReplace(subNodeValue, sbKey, sbValue);
+							newArgs[subNodeArg.Key] = newValue;
+							Debug.WriteLine(
+								$"BuildServer.ProcessSubBuilds: Convert value: \"{subNodeValue}\" => \"\"{newValue}\"\"");
+						}
+					}
+					newNodes.Add(new BuildNode(subNode.Name, subNode.Command, newArgs));
+				}
+				nodes.InsertRange(i, newNodes);
 			}
 		}
 		

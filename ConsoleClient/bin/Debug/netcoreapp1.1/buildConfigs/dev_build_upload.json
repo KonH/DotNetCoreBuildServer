@@ -1,6 +1,6 @@
 ﻿{
 	"args": [
-		"tag"
+		"tag", "message"
 	],
 	"tasks": [
 		{
@@ -71,7 +71,7 @@
 		{
 			"build_report": {
 				"print": {
-					"message": "Build result rev.{upload_build:result}"
+					"message": "{message} rev.{upload_build:result}"
 				}
 			}
 		}

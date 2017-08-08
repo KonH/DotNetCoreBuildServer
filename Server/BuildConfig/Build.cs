@@ -51,9 +51,12 @@ namespace Server.BuildConfig {
 		}
 
 		static BuildNode ExtractSubBuildNode(IConfigurationSection taskNode) {
-			var buildName = taskNode.Value;
-			Debug.WriteLine($"Sub-build name: \"{buildName}\"");
-			return new SubBuildNode(buildName);
+			var command = taskNode.GetChildren().FirstOrDefault();
+			var buildName = command.Key;
+			var args = command.GetChildren();
+			var buildArgs = args.ToDictionary(arg => arg.Key, arg => arg.Value);
+			Debug.WriteLine($"Sub-build name: \"{buildName}\", args: {buildArgs.Count}");
+			return new SubBuildNode(buildName, buildArgs);
 		}
 
 		static void ProcessArgs(IConfiguration node, List<string> args) {
