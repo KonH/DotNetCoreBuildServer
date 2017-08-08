@@ -15,7 +15,14 @@ namespace Server.Commands {
 			if (string.IsNullOrEmpty(fromPath) || string.IsNullOrEmpty(toPath)) {
 				return CommandResult.Fail("No pathes provided!");
 			}
+			var ifExist = args.Get("if_exist");
 			try {
+				var ifExistValue = string.IsNullOrEmpty(ifExist) || bool.Parse(ifExist);
+				if ( !Directory.Exists(fromPath) ) {
+					return ifExistValue ?
+						CommandResult.Fail($"Directory \"{fromPath}\" does not exists!") :
+						CommandResult.Success();
+				}
 				CopyDirectory(fromPath, toPath);
 				return CommandResult.Success($"Directory copied from \"{fromPath}\" to \"{toPath}\".");
 			} catch (Exception e) {
