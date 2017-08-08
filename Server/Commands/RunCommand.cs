@@ -4,10 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Server.Commands {
 	[CommandAttribute("run")]
 	public class RunCommand:ICommand, IAbortableCommand {
+
+		const int MaxReadAttempts  = 10;
+		const int ReadAttemptSleep = 500;
 
 		string _inMemoryLog = "";
 		bool   _isAborted   = false;
@@ -23,6 +27,7 @@ namespace Server.Commands {
 			var commandArgs = args.Get("args");
 			var workDir = args.Get("work_dir");
 			var logFile = args.Get("log_file");
+			var isExternalLog = args.Get("is_external_log");
 			try {
 				var startInfo = new ProcessStartInfo(path, commandArgs);
 				if (!string.IsNullOrEmpty(workDir)) {
@@ -35,13 +40,16 @@ namespace Server.Commands {
 				};
 				_inMemoryLog = "";
 				process.Start();
-				using (var logStream = OpenLogFile(logFile)) {
+				var isExternalLogValue = !string.IsNullOrEmpty(isExternalLog) && bool.Parse(isExternalLog);
+				Debug.WriteLine($"RunCommand.Execute: logFile: \"{logFile}\", isExternalLog: {isExternalLogValue}");
+				using (var logStream = OpenLogFile(logFile, isExternalLogValue) ) {
+					Debug.WriteLine($"RunCommand.Execute: Used logStream: {(logStream != null ? logStream.ToString() : "null")}");
 					ReadOutputAsync(process.StandardOutput, logStream);
 					ReadOutputAsync(process.StandardError, logStream);
-					while (!process.HasExited) {
-						if (_isAborted) {
-							process.Kill();
-						}
+				}
+				while ( !process.HasExited ) {
+					if ( _isAborted ) {
+						process.Kill();
 					}
 				}
 				if (_isAborted) {
@@ -51,7 +59,24 @@ namespace Server.Commands {
 				var resultRegex = args.Get("result_regex");
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
-					var logContent = File.ReadAllText(logFile);
+					string logContent = null;
+					int curAttempt = 0;
+					bool isDone = false;
+					do {
+						try {
+							Debug.WriteLine($"RunCommand.Execute: Try to read log file at: \"{logFile}\"");
+							logContent = File.ReadAllText(logFile);
+							isDone = true;
+						} catch ( Exception e ) {
+							Debug.WriteLine($"RunCommand.Execute: Read log Exception: \"{e}\", attempt: {curAttempt}/{MaxReadAttempts}");
+							if ( curAttempt > MaxReadAttempts ) {
+								throw;
+							} else {
+								curAttempt++;
+								Thread.Sleep(ReadAttemptSleep);
+							}
+						}
+					} while (!isDone);
 					var result = GetResultMessage(resultRegex, logContent);
 					return CheckCommandResult(errorRegex, logContent, msg, result);
 				} else {
@@ -83,8 +108,8 @@ namespace Server.Commands {
 			return "";
 		}
 		
-		FileStream OpenLogFile(string logFile) {
-			if (logFile != null) {
+		FileStream OpenLogFile(string logFile, bool isExternalLog) {
+			if ((logFile != null) && !isExternalLog) {
 				return File.OpenWrite(logFile);
 			}
 			return null;
