@@ -330,12 +330,15 @@ Failed only if "if_exist": "true"
 
 ### Copy file/copy dir
 
+If you set "if_exist" : "false" (optional), operation will be ignored when source file isn't exist (by default it cause error):
+
 ```
 {
 	"task_name": {
 		"copy_file": {
 			"from": "fromPath",
-			"to": "toPath"
+			"to": "toPath",
+			"if_exist" : "true"
 		}
 	}
 }
@@ -344,8 +347,10 @@ Failed only if "if_exist": "true"
 {
 	"task_name": {
 		"copy_dir": {
+		"if_exist" : "false"
 			"from": "fromPath",
-			"to": "toPath"
+			"to": "toPath",
+			"if_exist" : "true"
 		}
 	}
 }
