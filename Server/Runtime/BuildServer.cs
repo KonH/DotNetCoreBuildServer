@@ -119,12 +119,15 @@ namespace Server.Runtime {
 						var sbKey = subBuildArg.Key;
 						var sbValue = subBuildArg.Value;
 						foreach (var subNodeArg in subNode.Args) {
-							if (!newArgs.ContainsKey(subNodeArg.Key)) {
-								newArgs.Add(subNodeArg.Key, string.Empty);
-							}
 							var subNodeValue = subNodeArg.Value;
-							var newValue = TryReplace(subNodeValue, sbKey, sbValue);
-							newArgs[subNodeArg.Key] = newValue;
+							string newValue = null;
+							if (!newArgs.ContainsKey(subNodeArg.Key)) {
+								newValue = TryReplace(subNodeValue, sbKey, sbValue);
+								newArgs.Add(subNodeArg.Key, newValue);
+							} else {
+								newValue = TryReplace(newArgs[subNodeArg.Key], sbKey, sbValue);
+								newArgs[subNodeArg.Key] = newValue;
+							}
 							Debug.WriteLine(
 								$"BuildServer.ProcessSubBuilds: Convert value: \"{subNodeValue}\" => \"\"{newValue}\"\"");
 						}
