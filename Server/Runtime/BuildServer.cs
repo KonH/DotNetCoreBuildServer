@@ -132,7 +132,12 @@ namespace Server.Runtime {
 								$"BuildServer.ProcessSubBuilds: Convert value: \"{subNodeValue}\" => \"\"{newValue}\"\"");
 						}
 					}
+					if ( newArgs.Count == 0 ) {
+						newArgs = subNode.Args;
+					}
 					newNodes.Add(new BuildNode(subNode.Name, subNode.Command, newArgs));
+					Debug.WriteLine(
+						$"BuildServer.ProcessSubBuilds: Converted node: \"{subNode.Name}\", args: {newArgs.Count}");
 				}
 				nodes.InsertRange(i, newNodes);
 			}
