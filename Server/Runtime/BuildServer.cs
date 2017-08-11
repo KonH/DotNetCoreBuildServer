@@ -307,8 +307,13 @@ namespace Server.Runtime {
 
 		void AddTaskState(string taskName, string key, string value) {
 			var fullKey = $"{taskName}:{key}";
-			_taskStates.Add(fullKey, value);
-			Debug.WriteLine($"BuildServer.AddTaskState: \"{fullKey}\"=>\"{value}\"");
+			if ( _taskStates.ContainsKey(fullKey) ) {
+				_taskStates[fullKey] = value;
+				Debug.WriteLine($"BuildServer.AddTaskState: Override \"{fullKey}\"=>\"{value}\"");
+			} else {
+				_taskStates.Add(fullKey, value);
+				Debug.WriteLine($"BuildServer.AddTaskState: Add \"{fullKey}\"=>\"{value}\"");
+			}
 		}
 		
 		public void RequestStatus() {
