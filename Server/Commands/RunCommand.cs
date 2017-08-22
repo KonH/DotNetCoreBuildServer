@@ -35,22 +35,26 @@ namespace Server.Commands {
 				}
 				startInfo.RedirectStandardOutput = true;
 				startInfo.RedirectStandardError = true;
+				Debug.WriteLine($"RunCommand.Execute: Initialize process: \"{path}\" \"{commandArgs}\"");
 				var process = new Process {
 					StartInfo = startInfo
 				};
 				_inMemoryLog = "";
 				process.Start();
+				var processName = $"{process.ProcessName} ({process.Id})";
+				Debug.WriteLine($"RunCommand.Execute: Process is started: {processName}.");
 				var isExternalLogValue = !string.IsNullOrEmpty(isExternalLog) && bool.Parse(isExternalLog);
 				Debug.WriteLine($"RunCommand.Execute: logFile: \"{logFile}\", isExternalLog: {isExternalLogValue}");
 				using ( var logStream = OpenLogFile(logFile, isExternalLogValue) ) {
 					Debug.WriteLine($"RunCommand.Execute: Used logStream: {(logStream != null ? logStream.ToString() : "null")}");
-					ReadOutputAsync(process.StandardOutput, logStream);
-					ReadOutputAsync(process.StandardError, logStream);
+					ReadOutputAsync(processName, process.StandardOutput, logStream);
+					ReadOutputAsync(processName, process.StandardError, logStream);
 					while ( !process.HasExited ) {
 						if ( _isAborted ) {
 							process.Kill();
 						}
 					}
+					Debug.WriteLine($"RunCommand.Execute: Process is exited: {processName}.");
 				}
 				if (_isAborted) {
 					throw new CommandAbortedException();
@@ -115,26 +119,26 @@ namespace Server.Commands {
 			return null;
 		}
 		
-		async void ReadOutputAsync(StreamReader reader, FileStream logStream) {
+		async void ReadOutputAsync(string name, StreamReader reader, FileStream logStream) {
 			string line = await reader.ReadLineAsync();
 			if (!string.IsNullOrEmpty(line)) {
 				var endedLine = line + "\n";
 				if (logStream != null) {
-					Debug.WriteLine($"RunCommand.ReadOutputAsync: line: \"{line}\"");
+					Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): line: \"{line}\"");
 					var bytes = Encoding.UTF8.GetBytes(endedLine);
 					try {
 						if ( logStream.CanWrite ) {
 							logStream.Write(bytes, 0, bytes.Length);
 						} else {
-							Debug.WriteLine($"RunCommand.ReadOutputAsync: Can't write to LogStream.");
+							Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): Can't write to LogStream.");
 						}
 					} catch (Exception e) {
-						Debug.WriteLine($"RunCommand.ReadOutputAsync: exception: \"{e}\"");
+						Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): exception: \"{e}\"");
 					}
 				} else {
 					_inMemoryLog += endedLine;
 				}
-				ReadOutputAsync(reader, logStream);
+				ReadOutputAsync(name, reader, logStream);
 			}
 		}
 
