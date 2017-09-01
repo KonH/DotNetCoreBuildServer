@@ -32,7 +32,9 @@ namespace Server.Integrations {
 			var token = keys.Get("slack_token");
 			var hub = keys.Get("slack_hub");
 			if (IsValidSettings(name, token, hub)) {
-				return InitBot(server, name, token, hub, null);
+				var loggerFactory = new LoggerFactory();
+				loggerFactory.AddConsole();
+				return InitBot(server, name, token, hub, loggerFactory);
 			}
 			Debug.WriteLine(
 				$"SlackService.TryInit: wrong arguments: name: \"{name}\", token: \"{token}\", hub: \"{hub}\"");
@@ -66,12 +68,12 @@ namespace Server.Integrations {
 
 		async void OnSendMessageFailure(ISendMessageQueue queue, IMessage message, ILogger logger, Exception exception) {
 			if ( message.SendAttempts <= 5 ) {
-				Debug.WriteLine($"Failed to send message {message.Text}. Tried {message.SendAttempts} times (exception: {exception})");
+				logger?.LogWarning($"Failed to send message {message.Text}. Tried {message.SendAttempts} times (exception: {exception})");
 				await Task.Delay(1000 * message.SendAttempts);
 				queue.Enqueue(message);
 				return;
 			}
-			Debug.WriteLine($"Gave up trying to send message {message.Text} (exception: {exception})");
+			logger?.LogError($"Gave up trying to send message {message.Text} (exception: {exception})");
 		}
 
 		public async void SendMessage(string message) {
