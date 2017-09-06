@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Server.Commands {
 	public interface ICommand {
-		CommandResult Execute(Dictionary<string, string> args);
+		CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args);
 	}
 }

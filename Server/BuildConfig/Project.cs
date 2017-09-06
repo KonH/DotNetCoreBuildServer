@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Server.BuildConfig {
 	public class Project {
@@ -13,22 +13,23 @@ namespace Server.BuildConfig {
 			Keys = keys;
 		}
 		
-		public static Project Load(string serverName, string[] pathes) {
+		public static Project Load(LoggerFactory loggerFactory, string serverName, string[] pathes) {
+			var logger = loggerFactory.CreateLogger<Project>();
 			var builder = new ConfigurationBuilder();
 			foreach (var path in pathes) {
 				builder.AddJsonFile(path);
-				Debug.WriteLine($"Project.Load: use file: \"{path}\"");
+				logger.LogDebug($"Load: use file: \"{path}\"");
 			}
 			var config = builder.Build();
 			var keys = new Dictionary<string, string>();
 			foreach (var node in config.AsEnumerable()) {
-				Debug.WriteLine(
-					$"Project.Load: key/value in file: \"{node.Key}\"=>\"{node.Value}\"");
+				logger.LogDebug(
+					$"Load: key/value in file: \"{node.Key}\"=>\"{node.Value}\"");
 				keys.Add(node.Key, node.Value);
 			}
 			keys.Add("serverName", serverName);
 			var project = new Project(keys);
-			Debug.WriteLine($"Project.Load: loaded buildsRoot: \"{project.BuildsRoot}\"");
+			logger.LogDebug($"Project.Load: loaded buildsRoot: \"{project.BuildsRoot}\"");
 			return project;
 		}
 	}

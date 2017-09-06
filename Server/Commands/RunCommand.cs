@@ -1,4 +1,5 @@
-﻿using System;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -7,16 +8,19 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Server.Commands {
-	[CommandAttribute("run")]
+	[Command("run")]
 	public class RunCommand:ICommand, IAbortableCommand {
 
 		const int MaxReadAttempts  = 10;
 		const int ReadAttemptSleep = 500;
 
+		ILogger _logger;
+
 		string _inMemoryLog = "";
 		bool   _isAborted   = false;
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
+			_logger = loggerFactory.CreateLogger<RunCommand>();
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}
@@ -35,18 +39,18 @@ namespace Server.Commands {
 				}
 				startInfo.RedirectStandardOutput = true;
 				startInfo.RedirectStandardError = true;
-				Debug.WriteLine($"RunCommand.Execute: Initialize process: \"{path}\" \"{commandArgs}\"");
+				_logger.LogDebug($"Execute: Initialize process: \"{path}\" \"{commandArgs}\"");
 				var process = new Process {
 					StartInfo = startInfo
 				};
 				_inMemoryLog = "";
 				process.Start();
 				var processName = $"{process.ProcessName} ({process.Id})";
-				Debug.WriteLine($"RunCommand.Execute: Process is started: {processName}.");
+				_logger.LogDebug($"Execute: Process is started: {processName}.");
 				var isExternalLogValue = !string.IsNullOrEmpty(isExternalLog) && bool.Parse(isExternalLog);
-				Debug.WriteLine($"RunCommand.Execute: logFile: \"{logFile}\", isExternalLog: {isExternalLogValue}");
+				_logger.LogDebug($"Execute: logFile: \"{logFile}\", isExternalLog: {isExternalLogValue}");
 				using ( var logStream = OpenLogFile(logFile, isExternalLogValue) ) {
-					Debug.WriteLine($"RunCommand.Execute: Used logStream: {(logStream != null ? logStream.ToString() : "null")}");
+					_logger.LogDebug($"Execute: Used logStream: {(logStream != null ? logStream.ToString() : "null")}");
 					ReadOutputAsync(processName, process.StandardOutput, logStream);
 					ReadOutputAsync(processName, process.StandardError, logStream);
 					while ( !process.HasExited ) {
@@ -54,7 +58,7 @@ namespace Server.Commands {
 							process.Kill();
 						}
 					}
-					Debug.WriteLine($"RunCommand.Execute: Process is exited: {processName}.");
+					_logger.LogDebug($"Execute: Process is exited: {processName}.");
 				}
 				if (_isAborted) {
 					throw new CommandAbortedException();
@@ -68,11 +72,11 @@ namespace Server.Commands {
 					bool isDone = false;
 					do {
 						try {
-							Debug.WriteLine($"RunCommand.Execute: Try to read log file at: \"{logFile}\"");
+							_logger.LogDebug($"Execute: Try to read log file at: \"{logFile}\"");
 							logContent = File.ReadAllText(logFile);
 							isDone = true;
 						} catch ( Exception e ) {
-							Debug.WriteLine($"RunCommand.Execute: Read log Exception: \"{e}\", attempt: {curAttempt}/{MaxReadAttempts}");
+							_logger.LogError($"Execute: Read log Exception: \"{e}\", attempt: {curAttempt}/{MaxReadAttempts}");
 							if ( curAttempt > MaxReadAttempts ) {
 								throw;
 							} else {
@@ -124,16 +128,16 @@ namespace Server.Commands {
 			if (!string.IsNullOrEmpty(line)) {
 				var endedLine = line + "\n";
 				if (logStream != null) {
-					Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): line: \"{line}\"");
+					_logger.LogDebug($"ReadOutputAsync({name}): line: \"{line}\"");
 					var bytes = Encoding.UTF8.GetBytes(endedLine);
 					try {
 						if ( logStream.CanWrite ) {
 							logStream.Write(bytes, 0, bytes.Length);
 						} else {
-							Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): Can't write to LogStream.");
+							_logger.LogDebug($"ReadOutputAsync({name}): Can't write to LogStream.");
 						}
 					} catch (Exception e) {
-						Debug.WriteLine($"RunCommand.ReadOutputAsync({name}): exception: \"{e}\"");
+						_logger.LogError($"ReadOutputAsync({name}): exception: \"{e}\"");
 					}
 				} else {
 					_inMemoryLog += endedLine;

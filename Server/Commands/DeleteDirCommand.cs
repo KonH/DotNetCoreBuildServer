@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Commands {
-	[CommandAttribute("delete_dir")]
+	[Command("delete_dir")]
 	public class DeleteDirCommand:ICommand {
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}

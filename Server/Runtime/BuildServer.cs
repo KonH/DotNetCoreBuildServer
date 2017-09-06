@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,6 +7,7 @@ using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
 using Server.Integrations;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Runtime {
 	public class BuildServer {
@@ -40,9 +40,16 @@ namespace Server.Runtime {
 		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
 		
 		DateTime _curTime => DateTime.Now;
+
+		CommandFactory _commandFactory;
+		LoggerFactory  _loggerFactory;
+		ILogger        _logger;
 		
-		public BuildServer(string name) {
-			Debug.WriteLine($"BuildServer.ctor: name: \"{name}\"");
+		public BuildServer(CommandFactory commandFactory, LoggerFactory loggerFactory, string name) {
+			_commandFactory = commandFactory;
+			_loggerFactory = loggerFactory;
+			_logger = _loggerFactory.CreateLogger<BuildServer>();
+			_logger.LogDebug($"ctor: name: \"{name}\"");
 			Name = name;
 		}
 
@@ -63,7 +70,7 @@ namespace Server.Runtime {
 				var name = ConvertToBuildName(file);
 				var fullPath = file.FullName;
 				try {
-					var build = Build.Load(name, fullPath);
+					var build = Build.Load(_loggerFactory, name, fullPath);
 					tempDict.Add(name, build);
 				} catch (Exception e) {
 					RaiseCommonError($"Failed to load build at \"{fullPath}\": \"{e}\"", true);	
@@ -90,7 +97,7 @@ namespace Server.Runtime {
 		}
 
 		void ValidateNode(BuildNode node) {
-			if (string.IsNullOrEmpty(node.Command) || !CommandFactory.ContainsHandler(node.Command)) {
+			if (string.IsNullOrEmpty(node.Command) || !_commandFactory.ContainsHandler(node.Command)) {
 				throw new CommandNotFoundException(node.Command);
 			}
 		}
@@ -104,7 +111,7 @@ namespace Server.Runtime {
 					continue;
 				}
 				var subBuildName = subBuildNode.Name;
-				Debug.WriteLine($"BuildServer.ProcessSubBuilds: Process sub build node: \"{subBuildName}\"");
+				_logger.LogDebug($"ProcessSubBuilds: Process sub build node: \"{subBuildName}\"");
 				Build subBuild;
 				if (!builds.TryGetValue(subBuildName, out subBuild)) {
 					throw new SubBuildNotFoundException(subBuildName);
@@ -128,26 +135,26 @@ namespace Server.Runtime {
 								newValue = TryReplace(newArgs[subNodeArg.Key], sbKey, sbValue);
 								newArgs[subNodeArg.Key] = newValue;
 							}
-							Debug.WriteLine(
-								$"BuildServer.ProcessSubBuilds: Convert value: \"{subNodeValue}\" => \"\"{newValue}\"\"");
+							_logger.LogDebug(
+								$"ProcessSubBuilds: Convert value: \"{subNodeValue}\" => \"\"{newValue}\"\"");
 						}
 					}
 					if ( newArgs.Count == 0 ) {
 						newArgs = subNode.Args;
 					}
 					newNodes.Add(new BuildNode(subNode.Name, subNode.Command, newArgs));
-					Debug.WriteLine(
-						$"BuildServer.ProcessSubBuilds: Converted node: \"{subNode.Name}\", args: {newArgs.Count}");
+					_logger.LogDebug(
+						$"ProcessSubBuilds: Converted node: \"{subNode.Name}\", args: {newArgs.Count}");
 				}
 				nodes.InsertRange(i, newNodes);
 			}
 		}
 		
 		public bool TryInitialize(out string errorMessage, List<IService> services, params string[] projectPathes) {
-			Debug.WriteLine(
-				$"BuildServer.TryInitialize: services: {services.Count()}, pathes: {projectPathes.Length}");
+			_logger.LogDebug(
+				$"TryInitialize: services: {services.Count()}, pathes: {projectPathes.Length}");
 			try {
-				Project = Project.Load(Name, projectPathes);
+				Project = Project.Load(_loggerFactory, Name, projectPathes);
 			} catch (Exception e) {
 				errorMessage = $"Failed to parse project settings: \"{e}\"";
 				return false;
@@ -164,9 +171,9 @@ namespace Server.Runtime {
 		void InitServices(IEnumerable<IService> services, Project project) {
 			Services = new List<IService>();
 			foreach (var service in services) {
-				Debug.WriteLine($"BuildServer.InitServices: \"{service.GetType().Name}\"");
+				_logger.LogDebug($"InitServices: \"{service.GetType().Name}\"");
 				var isInited = service.TryInit(this, project);
-				Debug.WriteLine($"BuildServer.InitServices: isInited: {isInited}");
+				_logger.LogDebug($"InitServices: isInited: {isInited}");
 				if (isInited) {
 					Services.Add(service);
 				}
@@ -178,9 +185,9 @@ namespace Server.Runtime {
 				RaiseCommonError("InitBuild: server is busy!", true);
 				return false;
 			}
-			Debug.WriteLine($"BuildServer.InitBuild: \"{build.Name}\"");
+			_logger.LogDebug($"InitBuild: \"{build.Name}\"");
 			_build = build;
-			_process = new BuildProcess(build);
+			_process = new BuildProcess(_loggerFactory, build);
 			var convertedLogFile = ConvertArgValue(Project, _build, null, build.LogFile);
 			LogFileChanged?.Invoke(convertedLogFile);
 			OnInitBuild?.Invoke(_process);
@@ -189,36 +196,36 @@ namespace Server.Runtime {
 
 		public void StartBuild(string[] args) {
 			if (_process == null) {
-				Debug.WriteLine("BuildServer.StartBuild: No build to start!");
+				_logger.LogError("StartBuild: No build to start!");
 				return;
 			}
 			if (_process.IsStarted) {
-				Debug.WriteLine("BuildServer.StartBuild: Build already started!");
+				_logger.LogError("StartBuild: Build already started!");
 				return;
 			}
-			Debug.WriteLine($"BuildServer.StartBuild: args: {args.Length}");
+			_logger.LogDebug($"StartBuild: args: {args.Length}");
 			_buildArgs = args;
 			_thread = new Thread(ProcessBuild);
 			_thread.Start();
 		}
 
 		void ProcessBuild() {
-			Debug.WriteLine("BuildServer.ProcessBuild");
+			_logger.LogDebug("ProcessBuild");
 			var nodes = _build.Nodes;
 			_process.StartBuild(_curTime);
 			if (nodes.Count == 0) {
-				Debug.WriteLine("BuildServer.ProcessBuild: No build nodes!");
+				_logger.LogError("ProcessBuild: No build nodes!");
 				_process.Abort(_curTime);
 			}
 			foreach (var node in nodes) {
-				Debug.WriteLine($"BuildServer.ProcessBuild: node: \"{node.Name}\" (\"{node.Command}\")");
+				_logger.LogDebug($"ProcessBuild: node: \"{node.Name}\" (\"{node.Command}\")");
 				var result = ProcessCommand(_build, _buildArgs, node);
 				if (!result) {
-					Debug.WriteLine($"BuildServer.ProcessBuild: failed command!");
+					_logger.LogDebug($"ProcessBuild: failed command!");
 					_process.Abort(_curTime);
 				}
 				if (_process.IsAborted) {
-					Debug.WriteLine($"BuildServer.ProcessBuild: aborted!");
+					_logger.LogDebug($"ProcessBuild: aborted!");
 					break;
 				}
 			}
@@ -228,7 +235,7 @@ namespace Server.Runtime {
 			_thread    = null;
 			_process   = null;
 			_taskStates = new Dictionary<string, string>();
-			Debug.WriteLine("BuildServer.ProcessBuild: cleared");
+			_logger.LogDebug("ProcessBuild: cleared");
 		}
 
 		string TryReplace(string message, string key, string value) {
@@ -257,7 +264,7 @@ namespace Server.Runtime {
 			foreach (var state in _taskStates) {
 				result = TryReplace(result, state.Key, state.Value);
 			}
-			Debug.WriteLine($"BuildServer.ConvertArgValue: \"{value}\" => \"{result}\"");
+			_logger.LogDebug($"ConvertArgValue: \"{value}\" => \"{result}\"");
 			return result;
 		}
 
@@ -284,17 +291,17 @@ namespace Server.Runtime {
 		}
 		
 		bool ProcessCommand(Build build, string[] buildArgs, BuildNode node) {
-			Debug.WriteLine($"BuildServer.ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
+			_logger.LogDebug($"ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
 			_process.StartTask(node);
-			var command = CommandFactory.Create(node);
+			var command = _commandFactory.Create(node);
 			_curCommand = command;
-			Debug.WriteLine($"BuildServer.ProcessCommand: command is \"{command.GetType().Name}\"");
+			_logger.LogDebug($"ProcessCommand: command is \"{command.GetType().Name}\"");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
-			Debug.WriteLine($"BuildServer.ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
-			var result = command.Execute(runtimeArgs);
+			_logger.LogDebug($"ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
+			var result = command.Execute(_loggerFactory, runtimeArgs);
 			_curCommand = null;
-			Debug.WriteLine(
-				$"BuildServer.ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
+			_logger.LogDebug(
+				$"ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
 			_process.DoneTask(_curTime, result);
 			AddTaskState(node.Name, result);
 			return result.IsSuccess;
@@ -309,47 +316,47 @@ namespace Server.Runtime {
 			var fullKey = $"{taskName}:{key}";
 			if ( _taskStates.ContainsKey(fullKey) ) {
 				_taskStates[fullKey] = value;
-				Debug.WriteLine($"BuildServer.AddTaskState: Override \"{fullKey}\"=>\"{value}\"");
+				_logger.LogDebug($"AddTaskState: Override \"{fullKey}\"=>\"{value}\"");
 			} else {
 				_taskStates.Add(fullKey, value);
-				Debug.WriteLine($"BuildServer.AddTaskState: Add \"{fullKey}\"=>\"{value}\"");
+				_logger.LogDebug($"AddTaskState: Add \"{fullKey}\"=>\"{value}\"");
 			}
 		}
 		
 		public void RequestStatus() {
-			Debug.WriteLine("BuildServer.RequestStatus");
+			_logger.LogDebug("RequestStatus");
 			OnStatusRequest?.Invoke();
 		}
 
 		public void AbortBuild() {
-			Debug.WriteLine($"BuildServer.AbortBuild: hasProcess: {_process != null}");
+			_logger.LogDebug($"AbortBuild: hasProcess: {_process != null}");
 			var proc = _process;
 			if(proc != null ) {
-				Debug.WriteLine("BuildServer.AbortBuild: Abort running process");
+				_logger.LogDebug("AbortBuild: Abort running process");
 				proc.Abort(_curTime);
 			}
 			var abortableCommand = _curCommand as IAbortableCommand;
 			if (abortableCommand != null) {
-				Debug.WriteLine("BuildServer.AbortBuild: Abort running command");
+				_logger.LogDebug("AbortBuild: Abort running command");
 				abortableCommand.Abort();
 			}
 		}
 		
 		public void StopServer() {
-			Debug.WriteLine($"BuildServer.StopServer: hasProcess: {_process != null}");
+			_logger.LogDebug($"StopServer: hasProcess: {_process != null}");
 			AbortBuild();
 			while (_process != null) {}
 			OnStop?.Invoke();
-			Debug.WriteLine("BuildServer.StopServer: done");
+			_logger.LogDebug("StopServer: done");
 		}
 
 		public void RequestHelp() {
-			Debug.WriteLine("BuildServer.RequestHelp");
+			_logger.LogDebug("RequestHelp");
 			OnHelpRequest?.Invoke();
 		}
 
 		public void RaiseCommonError(string message, bool isFatal) {
-			Debug.WriteLine($"BuildServer.RaiseCommonError: \"{message}\", isFatal: {isFatal}");
+			_logger.LogError($"RaiseCommonError: \"{message}\", isFatal: {isFatal}");
 			OnCommonError?.Invoke(message, isFatal);
 		}
 	}

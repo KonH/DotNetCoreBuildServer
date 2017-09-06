@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Server.BuildConfig;
 using Server.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Controllers {
 	public class BaseServerController {
@@ -13,8 +13,11 @@ namespace Server.Controllers {
 
 		readonly Dictionary<string, Action<RequestArgs>> _handlers = 
 			new Dictionary<string, Action<RequestArgs>>();
+
+		ILogger _logger;
 		
-		protected BaseServerController(BuildServer server) {
+		protected BaseServerController(LoggerFactory loggerFactory, BuildServer server) {
+			_logger = loggerFactory.CreateLogger<BaseServerController>();
 			AddHandler("help",   RequestHelp);
 			AddHandler("status", RequestStatus);
 			AddHandler("build",  StartBuild);
@@ -24,22 +27,22 @@ namespace Server.Controllers {
 		}
 		
 		void AddHandler(string name, Action<RequestArgs> handler) {
-			Debug.WriteLine($"BaseServerController.AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
+			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
 			_handlers.Add(name, handler);
 		}
 
 		void AddHandler(string name, Action handler) {
-			Debug.WriteLine($"BaseServerController.AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
+			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
 			_handlers.Add(name, (_) => handler.Invoke());
 		}
 
 		void RequestHelp() {
-			Debug.WriteLine("BaseServerController.RequestHelp");
+			_logger.LogDebug("RequestHelp");
 			Server.RequestHelp();
 		}
 		
 		void RequestStatus() {
-			Debug.WriteLine("BaseServerController.RequestStatus");
+			_logger.LogDebug("RequestStatus");
 			Server.RequestStatus();
 		}
 		
@@ -72,12 +75,12 @@ namespace Server.Controllers {
 		}
 
 		protected void AbortBuild() {
-			Debug.WriteLine("AbortBuild");
+			_logger.LogDebug("AbortBuild");
 			Server.AbortBuild();
 		}
 
 		protected void StopServer() {
-			Debug.WriteLine("BaseServerController.StopServer");
+			_logger.LogDebug("StopServer");
 			Server.StopServer();
 		}
 		
@@ -88,19 +91,19 @@ namespace Server.Controllers {
 			}
 			var request = allParts[0];
 			var requestArgs = new RequestArgs(allParts.Skip(1));
-			Debug.WriteLine($"BaseServerController: \"{message}\" => [\"{request}\", {requestArgs.Count}]");
+			_logger.LogDebug($"ConvertMessage: \"{message}\" => [\"{request}\", {requestArgs.Count}]");
 			return new ServerRequest(request, requestArgs);
 		}
 		
 		protected void Call(ServerRequest request) {
-			Debug.WriteLine($"BaseServerController.Call: \"{request.Request}\"");
+			_logger.LogDebug($"Call: \"{request.Request}\"");
 			if (!request.IsValid) {
-				Debug.WriteLine("BaseServerController.Call: invalid request, call 'help'");
+				_logger.LogWarning("Call: invalid request, call 'help'");
 				_handlers["help"]?.Invoke(request.Args);
 				return;
 			}
 			var handler = _handlers.Get(request.Request);
-			Debug.WriteLine($"BaseServerController.Call: handler: \"{handler}\" (is null: {handler == null})");
+			_logger.LogDebug($"BaseServerController.Call: handler: \"{handler}\" (is null: {handler == null})");
 			handler?.Invoke(request.Args);
 		}
 	}

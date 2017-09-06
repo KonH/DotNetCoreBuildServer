@@ -1,12 +1,13 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Commands {
-	[CommandAttribute("check_dir_exist")]
+	[Command("check_dir_exist")]
 	public class CheckDirExistCommand:ICommand {
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}

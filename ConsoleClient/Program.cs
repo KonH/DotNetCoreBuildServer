@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Server.Integrations;
 using Server.Runtime;
+using Microsoft.Extensions.Logging;
+using Server.Commands;
 
 namespace ConsoleClient {
 	class Program {
@@ -13,14 +15,19 @@ namespace ConsoleClient {
 				Console.WriteLine("Closing...");
 				return;
 			}
+
+			var loggerFactory = new LoggerFactory();
+			loggerFactory.AddConsole(CustomLogFilter);
+
 			var serverName = args[0];
 			var serverArgs = args.Skip(1).ToArray();
-			var consoleService = new ConsoleService();
+			var consoleService = new ConsoleService(loggerFactory);
 			var services = new List<IService> {
 				consoleService,
-				new SlackService()
+				new SlackService(loggerFactory)
 			};
-			var server = new BuildServer(serverName);
+			var commandFactory = new CommandFactory(loggerFactory);
+			var server = new BuildServer(commandFactory, loggerFactory, serverName);
 			string startUpError = null;
 			if (!server.TryInitialize(out startUpError, services, serverArgs)) {
 				Console.WriteLine(startUpError);
@@ -29,6 +36,13 @@ namespace ConsoleClient {
 			}
 			Console.WriteLine($"{server.ServiceName} started and ready to use.");
 			consoleService.Process();
+		}
+
+		static bool CustomLogFilter(string category, LogLevel level) {
+			if ( category.StartsWith("SlackBotNet") && (level < LogLevel.Warning) ) {
+				return false;
+			}
+			return true;
 		}
 	}
 }

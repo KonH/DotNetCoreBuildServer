@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Server.Commands {
-	[CommandAttribute("print")]
+	[Command("print")]
 	public class PrintCommand:ICommand {
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+using System;
 using System.Threading.Tasks;
 using Server.BuildConfig;
 using Server.Controllers;
@@ -16,7 +15,10 @@ namespace Server.Integrations {
 		
 		public SlackServerController Controller { get; private set; }
 		public SlackServerView       View       { get; private set; }
-		
+
+		LoggerFactory _loggerFactory;
+		ILogger       _logger;
+
 		string   _name;
 		string   _hub;
 		SlackBot _bot;
@@ -26,18 +28,21 @@ namespace Server.Integrations {
 				!(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hub));
 		}
 		
+		public SlackService(LoggerFactory loggerFactory) {
+			_loggerFactory = loggerFactory;
+			_logger = _loggerFactory.CreateLogger<SlackService>();
+		}
+
 		public bool TryInit(BuildServer server, Project project) {
 			string name = server.Name;
 			var keys = project.Keys;
 			var token = keys.Get("slack_token");
 			var hub = keys.Get("slack_hub");
 			if (IsValidSettings(name, token, hub)) {
-				var loggerFactory = new LoggerFactory();
-				loggerFactory.AddConsole();
-				return InitBot(server, name, token, hub, loggerFactory);
+				return InitBot(server, name, token, hub, _loggerFactory);
 			}
-			Debug.WriteLine(
-				$"SlackService.TryInit: wrong arguments: name: \"{name}\", token: \"{token}\", hub: \"{hub}\"");
+			_logger.LogDebug(
+				$"TryInit: wrong arguments: name: \"{name}\", token: \"{token}\", hub: \"{hub}\"");
 			return false;
 		}
 		
@@ -45,17 +50,19 @@ namespace Server.Integrations {
 			_name = name;
 			_hub  = hub;
 			try {
+				_logger.LogDebug(
+					$"InitBot: Start initialize with  \"{name}\", token: \"{token}\", hub: \"{hub}\"");
 				InitBotAsync(token, loggerFactory).GetAwaiter().GetResult();
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.InitBot: exception: \"{e}\"");
+				_logger.LogError($"InitBot: exception: \"{e}\"");
 				return false;
 			}
 			_bot.When(_bot.State.BotUserId, conv => {
 				OnMessage?.Invoke(conv.Text);
 				return null;
 			});
-			Controller = new SlackServerController(this, server);
-			View       = new SlackServerView(this, server);
+			Controller = new SlackServerController(_loggerFactory, this, server);
+			View       = new SlackServerView(_loggerFactory, this, server);
 			return true;
 		}
 
@@ -68,22 +75,22 @@ namespace Server.Integrations {
 
 		async void OnSendMessageFailure(ISendMessageQueue queue, IMessage message, ILogger logger, Exception exception) {
 			if ( message.SendAttempts <= 5 ) {
-				logger?.LogWarning($"Failed to send message {message.Text}. Tried {message.SendAttempts} times (exception: {exception})");
+				logger?.LogWarning($"OnSendMessageFailure. Failed to send message {message.Text}. Tried {message.SendAttempts} times (exception: {exception})");
 				await Task.Delay(1000 * message.SendAttempts);
 				queue.Enqueue(message);
 				return;
 			}
-			logger?.LogError($"Gave up trying to send message {message.Text} (exception: {exception})");
+			logger?.LogError($"OnSendMessageFailure. Gave up trying to send message {message.Text} (exception: {exception})");
 		}
 
 		public async void SendMessage(string message) {
-			Debug.WriteLine($"SlackService.SendMessage: \"{message}\"");
+			_logger.LogDebug($"SendMessage: \"{message}\"");
 			var hubState = _bot.State.GetHub(_hub);
 			var fullMessage = string.Format("[{0}]\n {1}", _name, message);
 			try {
 				await _bot.SendAsync(hubState, fullMessage);
 			} catch (Exception e) {
-				Debug.WriteLine($"SlackService.SendMessage: exception: \"{e}\"");
+				_logger.LogError($"SendMessage: exception: \"{e}\"");
 			}
 		}
 	}

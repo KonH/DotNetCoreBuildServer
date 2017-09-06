@@ -1,21 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using Server.BuildConfig;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Commands {
-	public static class CommandFactory {
+	public class CommandFactory {
 
-		static readonly Dictionary<string, Type> Commands = new Dictionary<string, Type>();
+		readonly Dictionary<string, Type> _commands = new Dictionary<string, Type>();
 
-		static CommandFactory() {
-			Debug.WriteLine($"CommandFactory.static ctor()");
+		LoggerFactory _loggerFactory;
+		ILogger       _logger;
+
+		public CommandFactory(LoggerFactory loggerFactory) {
+			_loggerFactory = loggerFactory;
+			_logger = loggerFactory.CreateLogger<CommandFactory>();
+			_logger.LogDebug($"ctor()");
 			try {
 				AddAllCurrentHandlers();
-				Debug.WriteLine($"CommandFactory.static ctor(): commands: '{Commands.Count}'");
+				_logger.LogInformation($"ctor(): commands: '{_commands.Count}'");
 			} catch (Exception e) {
-				Debug.WriteLine($"CommandFactory.static ctor(): exception: {e}");
+				_logger.LogError($"ctor(): exception: {e}");
 			}
 
 		}
@@ -24,7 +29,7 @@ namespace Server.Commands {
 			return type.IsAssignableFrom(typeof(ICommand));
 		}
 		
-		static void AddAllCurrentHandlers() {
+		void AddAllCurrentHandlers() {
 			var assembly = typeof(CommandFactory).GetTypeInfo().Assembly;
 			var types = assembly.DefinedTypes;
 			foreach (var type in types) {
@@ -35,25 +40,25 @@ namespace Server.Commands {
 			}
 		}
 		
-		public static void AddCommandHandler(string command, Type type) {
+		public void AddCommandHandler(string command, Type type) {
 			if (IsCommandType(type)) {
 				return;
 			}
-			Commands.Add(command, type);
-			Debug.WriteLine($"CommandFactory.AddCommandHandler: '{command}' => {type.FullName}");
+			_commands.Add(command, type);
+			_logger.LogDebug($"AddCommandHandler: '{command}' => {type.FullName}");
 		}
 		
-		public static ICommand Create(BuildNode node) {
+		public ICommand Create(BuildNode node) {
 			Type commandType;
-			if (!Commands.TryGetValue(node.Command, out commandType)) {
+			if (!_commands.TryGetValue(node.Command, out commandType)) {
 				return new NotFoundCommand();
 			}
 			var commandInstance = Activator.CreateInstance(commandType) as ICommand;
 			return commandInstance;
 		}
 
-		public static bool ContainsHandler(string command) {
-			return Commands.ContainsKey(command);
+		public bool ContainsHandler(string command) {
+			return _commands.ContainsKey(command);
 		}
 	}
 }

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Server.BuildConfig;
 using Server.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Runtime {
 	public class BuildProcess {
@@ -35,10 +35,13 @@ namespace Server.Runtime {
 
 		DateTime  _startTime;
 		DateTime  _endTime;
-		
-		public BuildProcess(Build build) {
+
+		ILogger _logger;
+
+		public BuildProcess(LoggerFactory loggerFactory, Build build) {
+			_logger = loggerFactory.CreateLogger<BuildProcess>();
 			Name  = build.Name;
-			Tasks = build.Nodes.Select(node => new BuildTask(node)).ToList();
+			Tasks = build.Nodes.Select(node => new BuildTask(loggerFactory, node)).ToList();
 		}
 
 		BuildTask FindTask(BuildNode node) {
@@ -46,16 +49,16 @@ namespace Server.Runtime {
 		}
 
 		public void StartBuild(DateTime time) {
-			Debug.WriteLine($"BuildProcess.StartBuild: {time}");
+			_logger.LogDebug($"BuildProcess.StartBuild: {time}");
 			_startTime = time;
 			BuildStarted?.Invoke();
 		}
 		
 		public void StartTask(BuildNode node) {
-			Debug.WriteLine($"BuildProcess.StartTask: Node: \"{node.Name}\"");
+			_logger.LogDebug($"BuildProcess.StartTask: Node: \"{node.Name}\"");
 			var task = FindTask(node);
 			if (task != null) {
-				Debug.WriteLine($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
+				_logger.LogDebug($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
 				CurrentTask = task;
 				task.Start();
 				TaskStarted?.Invoke(task);
@@ -63,12 +66,12 @@ namespace Server.Runtime {
 		}
 
 		public void DoneTask(DateTime time, CommandResult result) {
-			Debug.WriteLine($"BuildProcess.DoneTask: {time}");
+			_logger.LogDebug($"BuildProcess.DoneTask: {time}");
 			var task = CurrentTask;
 			if (task == null) {
 				return;
 			}
-			Debug.WriteLine($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
+			_logger.LogDebug($"BuildProcess.DoneTask: Task: {task.GetHashCode()}");
 			task.Done(result.IsSuccess, result.Message, result.Result);
 			Silent = result.Silent;
 			TaskDone?.Invoke(task);
@@ -79,7 +82,7 @@ namespace Server.Runtime {
 		}
 
 		public void Abort(DateTime time) {
-			Debug.WriteLine($"BuildProcess.Abort: {time}");
+			_logger.LogDebug($"BuildProcess.Abort: {time}");
 			IsAborted = true;
 			if (CurrentTask == null) {
 				DoneBuild(time);
@@ -87,7 +90,7 @@ namespace Server.Runtime {
 		}
 
 		void DoneBuild(DateTime time) {
-			Debug.WriteLine($"BuildProcess.DoneBuild: {time}, isAborted: {IsAborted}");
+			_logger.LogDebug($"BuildProcess.DoneBuild: {time}, isAborted: {IsAborted}");
 			_endTime = time;
 			WorkTime = _endTime - _startTime;
 			BuildDone?.Invoke();

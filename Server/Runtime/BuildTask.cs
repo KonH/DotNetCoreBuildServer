@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Server.BuildConfig;
 
 namespace Server.Runtime {
@@ -10,18 +10,21 @@ namespace Server.Runtime {
 		public bool      IsSuccess { get; private set; }
 		public string    Message   { get; private set; }
 		public string    Result    { get; private set; }
-		
-		public BuildTask(BuildNode node) {
+
+		ILogger _logger;
+
+		public BuildTask(LoggerFactory loggerFactory, BuildNode node) {
+			_logger = loggerFactory.CreateLogger<BuildTask>();
 			Node = node;
 		}
 
 		public void Start() {
-			Debug.WriteLine($"BuildTask(\"{Node.Name}\").Start");
+			_logger.LogInformation($"BuildTask(\"{Node.Name}\").Start");
 			IsStarted = true;
 		}
 
 		public void Done(bool isSuccess, string message, string result) {
-			Debug.WriteLine($"BuildTask(\"{Node.Name}\").Done({isSuccess}, \"{message}\", \"{result}\")");
+			_logger.LogInformation($"BuildTask(\"{Node.Name}\").Done({isSuccess}, \"{message}\", \"{result}\")");
 			IsDone    = true;
 			IsSuccess = isSuccess;
 			Message   = message;

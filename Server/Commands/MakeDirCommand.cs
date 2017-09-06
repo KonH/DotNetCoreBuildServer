@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Commands {
-	[CommandAttribute("make_dir")]
+	[Command("make_dir")]
 	public class MakeDirCommand:ICommand {
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}

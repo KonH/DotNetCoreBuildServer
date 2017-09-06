@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Server.BuildConfig;
 using Server.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Views {
 	public abstract class BaseServerView {
@@ -12,8 +12,11 @@ namespace Server.Views {
 		
 		protected BuildServer  Server;
 		protected BuildProcess Process;
-		
-		protected BaseServerView(BuildServer server) {
+
+		ILogger _logger;
+
+		protected BaseServerView(LoggerFactory loggerFactory, BuildServer server) {
+			_logger = loggerFactory.CreateLogger<BaseServerView>();
 			Server = server;
 			Server.OnCommonError   += OnCommonError;
 			Server.OnInitBuild     += OnInitBuild;
@@ -95,7 +98,7 @@ namespace Server.Views {
 			Process.TaskStarted  += OnTaskStarted;
 			Process.TaskDone     += OnTaskDone;
 			Process.BuildDone    += OnBuildProcessDone;
-			Debug.WriteLine($"OnInitBuild: {process.Name}");
+			_logger.LogDebug($"OnInitBuild: {process.Name}");
 		}
 
 		protected string GetBuildArgsMessage() {
@@ -122,7 +125,7 @@ namespace Server.Views {
 		protected abstract void OnTaskDone(BuildTask buildTask);
 
 		protected virtual void OnBuildProcessDone() {
-			Debug.WriteLine($"OnBuildProcessDone: {Process.Name}");
+			_logger.LogDebug($"OnBuildProcessDone: {Process.Name}");
 			Process.BuildStarted -= OnBuildProcessStarted;
 			Process.TaskStarted  -= OnTaskStarted;
 			Process.TaskDone     -= OnTaskDone;

@@ -1,14 +1,15 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Server.Integrations;
 using Server.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Views {
 	public class SlackServerView:BaseServerView {
 		
 		readonly SlackService _service;
 
-		public SlackServerView(SlackService service, BuildServer server) : base(server) {
+		public SlackServerView(LoggerFactory loggerFactory, SlackService service, BuildServer server) : base(loggerFactory, server) {
 			_service = service;
 		}
 

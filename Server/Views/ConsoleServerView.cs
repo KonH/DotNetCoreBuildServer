@@ -1,15 +1,19 @@
-﻿using System;
-using System.Diagnostics;
+using System;
 using System.IO;
 using System.Linq;
 using Server.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Views {
 	public class ConsoleServerView:BaseServerView {
 
 		public string LogFile { get; set; }
-		
-		public ConsoleServerView(BuildServer server) : base(server) { }
+
+		ILogger _logger;
+
+		public ConsoleServerView(LoggerFactory loggerFactory, BuildServer server) : base(loggerFactory, server) {
+			_logger = loggerFactory.CreateLogger<ConsoleServerView>();
+		}
 
 		void WriteLine(string message = "") {
 			Console.WriteLine(message);
@@ -19,7 +23,7 @@ namespace Server.Views {
 				}
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"ConsoleServerView.WriteLine: write to log at \"{LogFile}\" failed: \"{e}\"");
+				_logger.LogDebug($"ConsoleServerView.WriteLine: write to log at \"{LogFile}\" failed: \"{e}\"");
 			}
 		}
 		

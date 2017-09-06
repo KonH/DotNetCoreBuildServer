@@ -1,12 +1,13 @@
-﻿using System;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Server.Commands {
-	[CommandAttribute("delete_file")]
+	[Command("delete_file")]
 	public class DeleteFileCommand:ICommand {
 		
-		public CommandResult Execute(Dictionary<string, string> args) {
+		public CommandResult Execute(LoggerFactory loggerFactory, Dictionary<string, string> args) {
 			if (args == null) {
 				return CommandResult.Fail("No arguments provided!");
 			}

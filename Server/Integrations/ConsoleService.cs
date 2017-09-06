@@ -1,20 +1,26 @@
-﻿using System;
-using System.Diagnostics;
+using System;
 using Server.BuildConfig;
 using Server.Controllers;
 using Server.Runtime;
 using Server.Views;
+using Microsoft.Extensions.Logging;
 
 namespace Server.Integrations {
 	public class ConsoleService:IService {
 
+		LoggerFactory _loggerFactory;
+
 		ConsoleServerController _controller;
 		ConsoleServerView       _view;
 		
+		public ConsoleService(LoggerFactory loggerFactory) {
+			_loggerFactory = loggerFactory;
+		}
+
 		public bool TryInit(BuildServer server, Project project) {
-			_controller = new ConsoleServerController(server);
-			_view       = new ConsoleServerView(server);
-			Debug.WriteLine("ConsoleService: initialized");
+			_controller = new ConsoleServerController(_loggerFactory, server);
+			_view       = new ConsoleServerView(_loggerFactory, server);
+			_loggerFactory.CreateLogger<ConsoleService>().LogDebug("ConsoleService: initialized");
 			return true;
 		}
 
