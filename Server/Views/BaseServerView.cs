@@ -4,6 +4,7 @@ using System.Text;
 using Server.BuildConfig;
 using Server.Runtime;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Server.Views {
 	public abstract class BaseServerView {
@@ -51,7 +52,7 @@ namespace Server.Views {
 				var curTaskName = curTask.Node.Name;
 				var taskIndex = allTasks.IndexOf(curTask);
 				var totalTasks = allTasks.Count;
-				sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks})\n");
+				sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {curTask.StartTime}, duration: {DateTime.Now - curTask.StartTime}\n");
 			}
 			sb.Append("Services:\n");
 			foreach (var service in Server.Services) {

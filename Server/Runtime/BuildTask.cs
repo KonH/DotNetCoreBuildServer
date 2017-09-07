@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Server.BuildConfig;
+using System;
 
 namespace Server.Runtime {
 	public class BuildTask {
@@ -10,6 +11,8 @@ namespace Server.Runtime {
 		public bool      IsSuccess { get; private set; }
 		public string    Message   { get; private set; }
 		public string    Result    { get; private set; }
+		public DateTime  StartTime { get; private set; }
+		public DateTime  EndTime   { get; private set; }
 
 		ILogger _logger;
 
@@ -21,6 +24,7 @@ namespace Server.Runtime {
 		public void Start() {
 			_logger.LogInformation($"BuildTask(\"{Node.Name}\").Start");
 			IsStarted = true;
+			StartTime = DateTime.Now;
 		}
 
 		public void Done(bool isSuccess, string message, string result) {
@@ -29,6 +33,7 @@ namespace Server.Runtime {
 			IsSuccess = isSuccess;
 			Message   = message;
 			Result    = result;
+			EndTime   = DateTime.Now;
 		}
 	}
 }
