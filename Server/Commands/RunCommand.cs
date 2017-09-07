@@ -65,6 +65,8 @@ namespace Server.Commands {
 				}
 				var errorRegex = args.Get("error_regex");
 				var resultRegex = args.Get("result_regex");
+				var isRightToLeft = args.Get("result_right_to_left");
+				var isRightToLeftValue = !string.IsNullOrEmpty(isRightToLeft) && bool.Parse(isRightToLeft);
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
 					string logContent = null;
@@ -85,12 +87,12 @@ namespace Server.Commands {
 							}
 						}
 					} while (!isDone);
-					var result = GetResultMessage(resultRegex, logContent);
+					var result = GetResultMessage(resultRegex, logContent, isRightToLeftValue);
 					return CheckCommandResult(errorRegex, logContent, msg, result);
 				} else {
 					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
 					var msg = _inMemoryLog;
-					var result = GetResultMessage(resultRegex, msg);
+					var result = GetResultMessage(resultRegex, msg, isRightToLeftValue);
 					return CheckCommandResult(errorRegex, msg, msg, result);
 				}
 			}
@@ -106,9 +108,12 @@ namespace Server.Commands {
 			_isAborted = true;
 		}
 
-		string GetResultMessage(string resultRegex, string message) {
+		string GetResultMessage(string resultRegex, string message, bool isRightToLeft) {
 			if (!string.IsNullOrEmpty(resultRegex)) {
-				var regex = new Regex(resultRegex);
+				var regex = 
+					isRightToLeft ? 
+					new Regex(resultRegex, RegexOptions.RightToLeft) : 
+					new Regex(resultRegex);
 				var match = regex.Match(message);
 				var value = match.Value;
 				return value;

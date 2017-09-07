@@ -186,7 +186,7 @@ You can use several servers (as many as you want), but if you don't need to dupl
 - Command output is shown as "message"
 - If "logfile" exists, "message" does not contain actual message, but contains path to log
 - To catch errors in output, use "error_regex"
-- To convert message to short "result", use "result_regex"
+- To convert message to short "result", use "result_regex" (also, you can set "result_right_to_left" to "true" if you need to catch last match instead of first)
 - If application which you call can't write to stdout and support only external log files, you can enable "is_external_log" (optional) and provide log path to app and "log_file". When execution is done, log file will be processed as usual
 
 ```
