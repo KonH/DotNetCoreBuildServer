@@ -26,7 +26,7 @@ namespace Server.Commands {
 		}
 
 		static bool IsCommandType(Type type) {
-			return type.IsAssignableFrom(typeof(ICommand));
+			return type.GetTypeInfo().IsAssignableFrom(typeof(ICommand));
 		}
 		
 		void AddAllCurrentHandlers() {
