@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace Server.Controllers {
+namespace Server.Runtime {
 	public class RequestArgs : List<string> {
 		
 		public RequestArgs() { }

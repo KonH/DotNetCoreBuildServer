@@ -6,14 +6,15 @@ using System.Reflection;
 using System.Threading;
 using Server.BuildConfig;
 using Server.Commands;
-using Server.Integrations;
+using Server.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Server.Runtime {
 	public class BuildServer {
 
 		public event Action               OnStatusRequest;
-		public event Action<string, bool> OnCommonError; 
+		public event Action<string, bool> OnCommonError;
+		public event Action<string>       OnCommonMessage;
 		public event Action               OnHelpRequest;
 		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
@@ -22,7 +23,9 @@ namespace Server.Runtime {
 		public string         Name     { get; }
 		public Project        Project  { get; private set; }
 		public List<IService> Services { get; private set; }
-		
+
+		public Dictionary<string, BuildCommand> Commands { get; private set; }
+
 		public string ServiceName {
 			get {
 				var assembly = GetType().GetTypeInfo().Assembly;
@@ -51,6 +54,7 @@ namespace Server.Runtime {
 			_logger = _loggerFactory.CreateLogger<BuildServer>();
 			_logger.LogDebug($"ctor: name: \"{name}\"");
 			Name = name;
+			Commands = new Dictionary<string, BuildCommand>();
 		}
 
 		static string ConvertToBuildName(FileSystemInfo file) {
@@ -358,6 +362,21 @@ namespace Server.Runtime {
 		public void RaiseCommonError(string message, bool isFatal) {
 			_logger.LogError($"RaiseCommonError: \"{message}\", isFatal: {isFatal}");
 			OnCommonError?.Invoke(message, isFatal);
+		}
+
+		public void RaiseCommonMessage(string message) {
+			_logger.LogDebug($"RaiseCommonMessage: \"{message}\"");
+			OnCommonMessage?.Invoke(message);
+		}
+
+		public void AddCommand(string name, string description, Action<RequestArgs> handler) {
+			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
+			Commands.Add(name, new BuildCommand(description, handler));
+		}
+
+		public void AddCommands(string name, string description, Action handler) {
+			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
+			Commands.Add(name, new BuildCommand(description, (_) => handler.Invoke()));
 		}
 	}
 }

@@ -11,29 +11,16 @@ namespace Server.Controllers {
 		
 		protected BuildServer Server;
 
-		readonly Dictionary<string, Action<RequestArgs>> _handlers = 
-			new Dictionary<string, Action<RequestArgs>>();
-
 		ILogger _logger;
 		
 		protected BaseServerController(LoggerFactory loggerFactory, BuildServer server) {
 			_logger = loggerFactory.CreateLogger<BaseServerController>();
-			AddHandler("help",   RequestHelp);
-			AddHandler("status", RequestStatus);
-			AddHandler("build",  StartBuild);
-			AddHandler("stop",   StopServer);
-			AddHandler("abort",  AbortBuild);
+			server.AddCommands("help",   "show this message", RequestHelp);
+			server.AddCommands("status", "current server status", RequestStatus);
+			server.AddCommand("build",  "start build with given parameters", StartBuild);
+			server.AddCommands("stop",   "stop server", StopServer);
+			server.AddCommands("abort",  "stop current build immediately", AbortBuild);
 			Server = server;
-		}
-		
-		void AddHandler(string name, Action<RequestArgs> handler) {
-			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			_handlers.Add(name, handler);
-		}
-
-		void AddHandler(string name, Action handler) {
-			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			_handlers.Add(name, (_) => handler.Invoke());
 		}
 
 		void RequestHelp() {
@@ -100,12 +87,12 @@ namespace Server.Controllers {
 			_logger.LogDebug($"Call: \"{request.Request}\"");
 			if (!request.IsValid) {
 				_logger.LogWarning("Call: invalid request, call 'help'");
-				_handlers["help"]?.Invoke(request.Args);
+				Server.Commands["help"]?.Handler.Invoke(request.Args);
 				return;
 			}
-			var handler = _handlers.Get(request.Request);
-			_logger.LogDebug($"BaseServerController.Call: handler: \"{handler}\" (is null: {handler == null})");
-			handler?.Invoke(request.Args);
+			var command = Server.Commands.Get(request.Request);
+			_logger.LogDebug($"BaseServerController.Call: handler: \"{command}\" (is null: {command == null})");
+			command?.Handler.Invoke(request.Args);
 		}
 	}
 }

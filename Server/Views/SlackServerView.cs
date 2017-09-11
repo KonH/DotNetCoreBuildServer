@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Text;
-using Server.Integrations;
+using Server.Services;
 using Server.Runtime;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +18,11 @@ namespace Server.Views {
 				_service.SendMessage($"Error: {message}");
 			}
 		}
-		
+
+		protected override void OnCommonMessage(string message) {
+			_service.SendMessage($"```{message}```");
+		}
+
 		protected override void OnHelpRequest() {
 			_service.SendMessage(GetHelpMessage());
 		}

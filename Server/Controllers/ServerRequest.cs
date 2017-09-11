@@ -1,4 +1,6 @@
-﻿namespace Server.Controllers {	
+using Server.Runtime;
+
+namespace Server.Controllers {	
 	public class ServerRequest {
 		
 		public string      Request { get; }

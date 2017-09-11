@@ -29,12 +29,12 @@ namespace Server.Runtime {
 		}
 
 		public BuildTask CurrentTask { get; private set; }
+		public DateTime  StartTime   { get; private set; }
+		public DateTime  EndTime     { get; private set; }
 		public TimeSpan  WorkTime    { get; private set; }
 		public bool      IsAborted   { get; private set; }
 		public bool      Silent      { get; private set; }
 
-		DateTime  _startTime;
-		DateTime  _endTime;
 
 		ILogger _logger;
 
@@ -50,7 +50,7 @@ namespace Server.Runtime {
 
 		public void StartBuild(DateTime time) {
 			_logger.LogDebug($"BuildProcess.StartBuild: {time}");
-			_startTime = time;
+			StartTime = time;
 			BuildStarted?.Invoke();
 		}
 		
@@ -91,8 +91,8 @@ namespace Server.Runtime {
 
 		void DoneBuild(DateTime time) {
 			_logger.LogDebug($"BuildProcess.DoneBuild: {time}, isAborted: {IsAborted}");
-			_endTime = time;
-			WorkTime = _endTime - _startTime;
+			EndTime = time;
+			WorkTime = EndTime - StartTime;
 			BuildDone?.Invoke();
 		}
 	}

@@ -5,7 +5,7 @@ using Server.Runtime;
 using Server.Views;
 using Microsoft.Extensions.Logging;
 
-namespace Server.Integrations {
+namespace Server.Services {
 	public class ConsoleService:IService {
 
 		LoggerFactory _loggerFactory;

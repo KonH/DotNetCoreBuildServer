@@ -8,7 +8,7 @@ using SlackBotNet;
 using Microsoft.Extensions.Logging;
 using SlackBotNet.Messages;
 
-namespace Server.Integrations {
+namespace Server.Services {
 	public class SlackService:IService {
 		
 		public event Action<string> OnMessage;
@@ -24,7 +24,7 @@ namespace Server.Integrations {
 		SlackBot _bot;
 
 		bool IsValidSettings(string name, string token, string hub) {
-			return 
+			return
 				!(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hub));
 		}
 		

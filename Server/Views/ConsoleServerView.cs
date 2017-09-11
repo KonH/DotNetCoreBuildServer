@@ -30,7 +30,11 @@ namespace Server.Views {
 		protected override void OnCommonError(string message, bool isFatal) {
 			WriteLine($"Error: {message}, isFatal: {isFatal}");
 		}
-		
+
+		protected override void OnCommonMessage(string message) {
+			WriteLine(message);
+		}
+
 		protected override void OnStatusRequest() {
 			WriteLine(GetStatusMessage());
 		}

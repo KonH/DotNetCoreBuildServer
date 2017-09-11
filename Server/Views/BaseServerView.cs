@@ -20,6 +20,7 @@ namespace Server.Views {
 			_logger = loggerFactory.CreateLogger<BaseServerView>();
 			Server = server;
 			Server.OnCommonError   += OnCommonError;
+			Server.OnCommonMessage += OnCommonMessage;
 			Server.OnInitBuild     += OnInitBuild;
 			Server.OnHelpRequest   += OnHelpRequest;
 			Server.OnStatusRequest += OnStatusRequest;
@@ -28,15 +29,14 @@ namespace Server.Views {
 		}
 
 		protected abstract void OnCommonError(string message, bool isFatal);
-		
+		protected abstract void OnCommonMessage(string message);
+
 		protected string GetHelpMessage() {
 			var sb = new StringBuilder();
 			sb.Append("Commands:\n");
-			sb.Append("- \"status\" - current server status\n");
-			sb.Append("- \"build arg0 arg1 ... argN\" - start build with given parameters\n");
-			sb.Append("- \"abort\" - stop current build immediately\n");
-			sb.Append("- \"help\" - show this message\n");
-			sb.Append("- \"stop\" - stop server\n");
+			foreach ( var handler in Server.Commands ) {
+				sb.Append($"- \"{handler.Key}\" - {handler.Value.Description}\n");
+			}
 			return sb.ToString();
 		}
 
