@@ -15,11 +15,11 @@ namespace Server.Controllers {
 		
 		protected BaseServerController(LoggerFactory loggerFactory, BuildServer server) {
 			_logger = loggerFactory.CreateLogger<BaseServerController>();
-			server.AddCommand("help",   "show this message", RequestHelp);
-			server.AddCommand("status", "current server status", RequestStatus);
-			server.AddCommand("build",  "start build with given parameters", StartBuild);
-			server.AddCommand("stop",   "stop server", StopServer);
-			server.AddCommand("abort",  "stop current build immediately", AbortBuild);
+			server.AddCommand(this, "help",   "show this message",                 RequestHelp);
+			server.AddCommand(this, "status", "current server status",             RequestStatus);
+			server.AddCommand(this, "build",  "start build with given parameters", StartBuild);
+			server.AddCommand(this, "stop",   "stop server",                       StopServer);
+			server.AddCommand(this, "abort",  "stop current build immediately",    AbortBuild);
 			Server = server;
 		}
 
@@ -87,12 +87,12 @@ namespace Server.Controllers {
 			_logger.LogDebug($"Call: \"{request.Request}\"");
 			if (!request.IsValid) {
 				_logger.LogWarning("Call: invalid request, call 'help'");
-				Server.Commands["help"]?.First().Handler.Invoke(request.Args);
+				Server.Commands.Call("help", this, request.Args);
 				return;
 			}
-			var command = Server.Commands.Get(request.Request);
+			var command = Server.Commands.All.Get(request.Request);
 			_logger.LogDebug($"BaseServerController.Call: handler: \"{command}\" (is null: {command == null})");
-			command?.First().Handler.Invoke(request.Args);
+			Server.Commands.Call(request.Request, this, request.Args);
 		}
 	}
 }

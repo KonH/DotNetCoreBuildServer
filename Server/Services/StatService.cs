@@ -27,7 +27,7 @@ namespace Server.Services {
 		public bool TryInit(BuildServer server, Project project) {
 			_server = server;
 			_server.OnInitBuild += OnInitBuild;
-			_server.AddCommand("stats", "show stats about all builds", OnStatsRequested);
+			_server.AddCommand(this, "stats", "show stats about all builds", OnStatsRequested);
 			LoadContainer();
 			_logger.LogDebug($"Container: {_container.Builds.Count} builds");
 			return true;

@@ -34,7 +34,7 @@ namespace Server.Views {
 		protected string GetHelpMessage() {
 			var sb = new StringBuilder();
 			sb.Append("Commands:\n");
-			foreach ( var handler in Server.Commands ) {
+			foreach ( var handler in Server.Commands.All ) {
 				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
 			}
 			return sb.ToString();
