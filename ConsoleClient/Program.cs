@@ -24,7 +24,8 @@ namespace ConsoleClient {
 			var consoleService = new ConsoleService(loggerFactory);
 			var services = new List<IService> {
 				consoleService,
-				new SlackService(loggerFactory)
+				new SlackService(loggerFactory),
+				new StatService("stats.xml" , loggerFactory)
 			};
 			var commandFactory = new CommandFactory(loggerFactory);
 			var server = new BuildServer(commandFactory, loggerFactory, serverName);
