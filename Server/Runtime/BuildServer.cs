@@ -24,7 +24,7 @@ namespace Server.Runtime {
 		public Project        Project  { get; private set; }
 		public List<IService> Services { get; private set; }
 
-		public Dictionary<string, BuildCommand> Commands { get; private set; }
+		public Dictionary<string, List<BuildCommand>> Commands { get; private set; }
 
 		public string ServiceName {
 			get {
@@ -54,7 +54,7 @@ namespace Server.Runtime {
 			_logger = _loggerFactory.CreateLogger<BuildServer>();
 			_logger.LogDebug($"ctor: name: \"{name}\"");
 			Name = name;
-			Commands = new Dictionary<string, BuildCommand>();
+			Commands = new Dictionary<string, List<BuildCommand>>();
 		}
 
 		static string ConvertToBuildName(FileSystemInfo file) {
@@ -369,14 +369,24 @@ namespace Server.Runtime {
 			OnCommonMessage?.Invoke(message);
 		}
 
-		public void AddCommand(string name, string description, Action<RequestArgs> handler) {
-			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			Commands.Add(name, new BuildCommand(description, handler));
+		void AddCommand(string name, BuildCommand command) {
+			if ( Commands.ContainsKey(name) ) {
+				Commands[name].Add(command);
+			} else {
+				var commands = new List<BuildCommand>();
+				commands.Add(command);
+				Commands.Add(name, commands);
+			}
 		}
 
-		public void AddCommands(string name, string description, Action handler) {
+		public void AddCommand(string name, string description, Action<RequestArgs> handler) {
 			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			Commands.Add(name, new BuildCommand(description, (_) => handler.Invoke()));
+			AddCommand(name, new BuildCommand(description, handler));
+		}
+
+		public void AddCommand(string name, string description, Action handler) {
+			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
+			AddCommand(name, new BuildCommand(description, (_) => handler.Invoke()));
 		}
 	}
 }

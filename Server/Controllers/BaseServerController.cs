@@ -15,11 +15,11 @@ namespace Server.Controllers {
 		
 		protected BaseServerController(LoggerFactory loggerFactory, BuildServer server) {
 			_logger = loggerFactory.CreateLogger<BaseServerController>();
-			server.AddCommands("help",   "show this message", RequestHelp);
-			server.AddCommands("status", "current server status", RequestStatus);
+			server.AddCommand("help",   "show this message", RequestHelp);
+			server.AddCommand("status", "current server status", RequestStatus);
 			server.AddCommand("build",  "start build with given parameters", StartBuild);
-			server.AddCommands("stop",   "stop server", StopServer);
-			server.AddCommands("abort",  "stop current build immediately", AbortBuild);
+			server.AddCommand("stop",   "stop server", StopServer);
+			server.AddCommand("abort",  "stop current build immediately", AbortBuild);
 			Server = server;
 		}
 
@@ -87,12 +87,12 @@ namespace Server.Controllers {
 			_logger.LogDebug($"Call: \"{request.Request}\"");
 			if (!request.IsValid) {
 				_logger.LogWarning("Call: invalid request, call 'help'");
-				Server.Commands["help"]?.Handler.Invoke(request.Args);
+				Server.Commands["help"]?.First().Handler.Invoke(request.Args);
 				return;
 			}
 			var command = Server.Commands.Get(request.Request);
 			_logger.LogDebug($"BaseServerController.Call: handler: \"{command}\" (is null: {command == null})");
-			command?.Handler.Invoke(request.Args);
+			command?.First().Handler.Invoke(request.Args);
 		}
 	}
 }

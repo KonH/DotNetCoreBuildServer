@@ -35,7 +35,7 @@ namespace Server.Views {
 			var sb = new StringBuilder();
 			sb.Append("Commands:\n");
 			foreach ( var handler in Server.Commands ) {
-				sb.Append($"- \"{handler.Key}\" - {handler.Value.Description}\n");
+				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
 			}
 			return sb.ToString();
 		}
