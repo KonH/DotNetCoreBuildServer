@@ -85,6 +85,7 @@ namespace Server.Controllers {
 		}
 		
 		protected ServerRequest ConvertMessage(string message) {
+			message = message.Trim();
 			var allParts = message.Split(' ');
 			if (allParts.Length <= 0) {
 				return ServerRequest.Empty;
