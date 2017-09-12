@@ -42,17 +42,21 @@ namespace Server.Views {
 
 		protected abstract void OnHelpRequest();
 		
+		protected void AppendTaskInfo(BuildTask task, StringBuilder sb) {
+			var allTasks = Process.Tasks;
+			var curTaskName = task.Node.Name;
+			var taskIndex = allTasks.IndexOf(task);
+			var totalTasks = allTasks.Count;
+			sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}\n");
+		}
+
 		protected string GetStatusMessage() {
 			var sb = new StringBuilder();
 			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
 			sb.Append($"Is busy: {Process != null}\n");
-			var curTask = Process?.CurrentTask;
-			if (curTask != null) {
-				var allTasks = Process.Tasks;
-				var curTaskName = curTask.Node.Name;
-				var taskIndex = allTasks.IndexOf(curTask);
-				var totalTasks = allTasks.Count;
-				sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {curTask.StartTime}, duration: {DateTime.Now - curTask.StartTime}\n");
+			var curTasks = Process?.CurrentTasks;
+			if ((curTasks != null) && (curTasks.Count > 0)) {
+				curTasks.ForEach(t => AppendTaskInfo(t, sb));
 			}
 			sb.Append("Services:\n");
 			foreach (var service in Server.Services) {

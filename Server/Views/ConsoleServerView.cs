@@ -7,9 +7,11 @@ using Microsoft.Extensions.Logging;
 namespace Server.Views {
 	public class ConsoleServerView:BaseServerView {
 
-		public string LogFile { get; set; }
+		public string LogFile { get; private set; }
 
 		ILogger _logger;
+
+		object logLock = new object();
 
 		public ConsoleServerView(LoggerFactory loggerFactory, BuildServer server) : base(loggerFactory, server) {
 			_logger = loggerFactory.CreateLogger<ConsoleServerView>();
@@ -19,7 +21,9 @@ namespace Server.Views {
 			Console.WriteLine(message);
 			try {
 				if (!string.IsNullOrEmpty(LogFile)) {
-					File.AppendAllText(LogFile, message + '\n');
+					lock ( logLock ) {
+						File.AppendAllText(LogFile, message + '\n');
+					}
 				}
 			}
 			catch (Exception e) {
@@ -66,7 +70,7 @@ namespace Server.Views {
 			}
 			WriteLine();
 			WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
-			WriteLine($"(success: {Process.IsSuccess}) for {Process.WorkTime}");
+			WriteLine($"(success: {Process.IsSuccess}) for {Utils.FormatTimeSpan(Process.WorkTime)}");
 			var lastTask = Process.Tasks.Last();
 			if (lastTask.IsSuccess) {
 				WriteLine("Last task message:");

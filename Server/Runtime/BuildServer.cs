@@ -8,6 +8,7 @@ using Server.BuildConfig;
 using Server.Commands;
 using Server.Services;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Server.Runtime {
 	public class BuildServer {
@@ -34,11 +35,11 @@ namespace Server.Runtime {
 			}
 		}
 		
-		string[]     _buildArgs;
-		Build        _build;
-		Thread       _thread;
-		BuildProcess _process;
-		ICommand     _curCommand;
+		string[]       _buildArgs;
+		Build          _build;
+		Thread         _thread;
+		BuildProcess   _process;
+		List<ICommand> _curCommands = new List<ICommand>();
 		
 		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
 		
@@ -221,9 +222,12 @@ namespace Server.Runtime {
 				_logger.LogError("ProcessBuild: No build nodes!");
 				_process.Abort(_curTime);
 			}
-			foreach (var node in nodes) {
-				_logger.LogDebug($"ProcessBuild: node: \"{node.Name}\" (\"{node.Command}\")");
-				var result = ProcessCommand(_build, _buildArgs, node);
+			var tasks = InitTasks(nodes);
+			foreach (var task in tasks) {
+				_logger.LogDebug($"ProcessBuild: task: {tasks.IndexOf(task)}/{tasks.Count}");
+				task.Start();
+				task.Wait();
+				var result = task.Result;
 				if (!result) {
 					_logger.LogDebug($"ProcessBuild: failed command!");
 					_process.Abort(_curTime);
@@ -240,6 +244,50 @@ namespace Server.Runtime {
 			_process   = null;
 			_taskStates = new Dictionary<string, string>();
 			_logger.LogDebug("ProcessBuild: cleared");
+		}
+
+		List<Task<bool>> InitTasks(List<BuildNode> nodes) {
+			var tasks = new List<Task<bool>>();
+			List<Task<bool>> parallelAccum = null;
+			foreach ( var node in nodes ) {
+				_logger.LogDebug($"InitTasks: node: \"{node.Name}\" (\"{node.Command}\")");
+				var task = new Task<bool>(() => ProcessCommand(_build, _buildArgs, node));
+				if ( node.IsParallel ) {
+					if ( parallelAccum == null ) {
+						parallelAccum = new List<Task<bool>>();
+					}
+					parallelAccum.Add(task);
+				} else {
+					ProcessParallelTask(ref parallelAccum, tasks);
+					tasks.Add(task);
+				}
+			}
+			ProcessParallelTask(ref parallelAccum, tasks);
+			return tasks;
+		}
+
+		void ProcessParallelTask(ref List<Task<bool>> accum, List<Task<bool>> tasks) {
+			if ( accum != null ) {
+				tasks.Add(CreateParallelTask(accum));
+				accum = null;
+			}
+		}
+
+		Task<bool> CreateParallelTask(List<Task<bool>> tasks) {
+			return new Task<bool>(() => ParallelProcess(tasks));
+		}
+
+		bool ParallelProcess(List<Task<bool>> tasks) {
+			foreach ( var task in tasks ) {
+				_logger.LogDebug($"Start parallel task: {tasks.IndexOf(task)}/{tasks.Count}");
+				task.Start();
+			}
+			Task.WaitAll(tasks.ToArray());
+			bool result = true;
+			foreach ( var task in tasks ) {
+				result = result && task.Result;
+			}
+			return result;
 		}
 
 		string TryReplace(string message, string key, string value) {
@@ -298,15 +346,15 @@ namespace Server.Runtime {
 			_logger.LogDebug($"ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
 			_process.StartTask(node);
 			var command = _commandFactory.Create(node);
-			_curCommand = command;
+			_curCommands.Add(command);
 			_logger.LogDebug($"ProcessCommand: command is \"{command.GetType().Name}\"");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			_logger.LogDebug($"ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
 			var result = command.Execute(_loggerFactory, runtimeArgs);
-			_curCommand = null;
+			_curCommands.Remove(command);
 			_logger.LogDebug(
 				$"ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
-			_process.DoneTask(_curTime, result);
+			_process.DoneTask(node, _curTime, result);
 			AddTaskState(node.Name, result);
 			return result.IsSuccess;
 		}
@@ -339,10 +387,11 @@ namespace Server.Runtime {
 				_logger.LogDebug("AbortBuild: Abort running process");
 				proc.Abort(_curTime);
 			}
-			var abortableCommand = _curCommand as IAbortableCommand;
-			if (abortableCommand != null) {
-				_logger.LogDebug("AbortBuild: Abort running command");
-				abortableCommand.Abort();
+			foreach ( var command in _curCommands ) {
+				if ( command is IAbortableCommand abortableCommand ) {
+					_logger.LogDebug("AbortBuild: Abort running command");
+					abortableCommand.Abort();
+				}
 			}
 		}
 		

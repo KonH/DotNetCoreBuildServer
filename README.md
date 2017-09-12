@@ -93,11 +93,34 @@ You can include one build into another build using this syntax in task list:
 		}
  }
 ```
+
 All tasks in sub build will be inserted in position of "_build" task.
 
 It allow you to re-use tasks and avoid code redundancy.
 
 If build args and sub-build args is the same, you can skip it and provide specific args only (which is not included in build args).
+
+### Task parallelism
+
+You can mark several tasks (one by one) as "parallel". This tasks run simultaneously and next execution is continued when all this tasks is done.
+
+```
+{
+	"task_a": {
+		...,
+		"parallel": "true"
+	},
+	"task_b": {
+		...,
+		"parallel": "true"
+	},
+	"task_c": {
+		...
+	}
+ }
+
+ In example above "task_a" and "task_b" start at same time, "task_c" started after "task_a" and "task_b" is done.
+
 
 ## Start
 

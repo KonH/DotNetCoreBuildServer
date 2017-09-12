@@ -28,20 +28,22 @@ namespace Server.Runtime {
 			get { return IsDone && !IsAborted && Tasks.All(task => task.IsSuccess); }
 		}
 
-		public BuildTask CurrentTask { get; private set; }
-		public DateTime  StartTime   { get; private set; }
-		public DateTime  EndTime     { get; private set; }
-		public TimeSpan  WorkTime    { get; private set; }
-		public bool      IsAborted   { get; private set; }
-		public bool      Silent      { get; private set; }
-
+		public List<BuildTask> CurrentTasks { get; private set; }
+		public DateTime        StartTime    { get; private set; }
+		public DateTime        EndTime      { get; private set; }
+		public TimeSpan        WorkTime     { get; private set; }
+		public bool            IsAborted    { get; private set; }
+		public bool            Silent       { get; private set; }
 
 		ILogger _logger;
+
+		bool _isDone = false;
 
 		public BuildProcess(LoggerFactory loggerFactory, Build build) {
 			_logger = loggerFactory.CreateLogger<BuildProcess>();
 			Name  = build.Name;
 			Tasks = build.Nodes.Select(node => new BuildTask(loggerFactory, node)).ToList();
+			CurrentTasks = new List<BuildTask>();
 		}
 
 		BuildTask FindTask(BuildNode node) {
@@ -59,15 +61,15 @@ namespace Server.Runtime {
 			var task = FindTask(node);
 			if (task != null) {
 				_logger.LogDebug($"BuildProcess.StartTask: Task: {task.GetHashCode()}");
-				CurrentTask = task;
+				CurrentTasks.Add(task);
 				task.Start();
 				TaskStarted?.Invoke(task);
 			}
 		}
 
-		public void DoneTask(DateTime time, CommandResult result) {
+		public void DoneTask(BuildNode node, DateTime time, CommandResult result) {
 			_logger.LogDebug($"BuildProcess.DoneTask: {time}");
-			var task = CurrentTask;
+			var task = FindTask(node);
 			if (task == null) {
 				return;
 			}
@@ -75,7 +77,7 @@ namespace Server.Runtime {
 			task.Done(result.IsSuccess, result.Message, result.Result);
 			Silent = result.Silent;
 			TaskDone?.Invoke(task);
-			CurrentTask = null;
+			CurrentTasks.Remove(task);
 			if (IsDone || IsAborted) {
 				DoneBuild(time);
 			}
@@ -84,12 +86,16 @@ namespace Server.Runtime {
 		public void Abort(DateTime time) {
 			_logger.LogDebug($"BuildProcess.Abort: {time}");
 			IsAborted = true;
-			if (CurrentTask == null) {
+			if (CurrentTasks.Count == 0) {
 				DoneBuild(time);
 			}
 		}
 
 		void DoneBuild(DateTime time) {
+			if ( _isDone ) {
+				return;
+			}
+			_isDone = true;
 			_logger.LogDebug($"BuildProcess.DoneBuild: {time}, isAborted: {IsAborted}");
 			EndTime = time;
 			WorkTime = EndTime - StartTime;
