@@ -9,3 +9,4 @@ ConsoleClient/obj
 Server/bin/
 ConsoleClient/stats.xml
 ConsoleClient/Properties/launchSettings.json
+ConsoleClient/log.txt

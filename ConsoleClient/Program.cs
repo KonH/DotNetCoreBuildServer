@@ -18,6 +18,13 @@ namespace ConsoleClient {
 
 			var loggerFactory = new LoggerFactory();
 			loggerFactory.AddConsole(CustomLogFilter);
+			loggerFactory.AddFile("log.txt");
+
+			var logger = loggerFactory.CreateLogger<Program>();
+			for ( int i = 0; i < 5; i++ ) {
+				logger.LogDebug("* * * * * * * * * *");
+			}
+			logger.LogDebug("Start session");
 
 			var serverName = args[0];
 			var serverArgs = args.Skip(1).ToArray();
