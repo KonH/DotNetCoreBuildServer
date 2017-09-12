@@ -14,6 +14,14 @@ namespace Server.Services.Stats {
 			Rows.Last().AddRange(cells);
 		}
 
+		public void FillNewRow(string filler) {
+			var row = new List<string>();
+			for ( var i = 0; i < Rows[0].Count; i++ ) {
+				row.Add(filler);
+			}
+			AddNewRow(row.ToArray());
+		}
+
 		string GetAt(List<string> row, int colIndex) {
 			return colIndex < row.Count ? row[colIndex] : string.Empty;
 		}

@@ -86,7 +86,7 @@ namespace Server.Services {
 		void AddBuildStat(BuildProcess process) {
 			var stat = new BuildStat(process.Name, process.StartTime, process.WorkTime);
 			foreach ( var task in process.Tasks ) {
-				stat.Tasks.Add(new TaskStat(task.Node.Name, task.EndTime - task.StartTime));
+				stat.Tasks.Add(new TaskStat(task.Node.Name, task.StartTime, task.EndTime - task.StartTime));
 			}
 			_container.Builds.Add(stat);
 		}
@@ -98,7 +98,7 @@ namespace Server.Services {
 			sb.Append(buildName == null ? "Stats:\n" : $"Stats ({buildName}):\n");
 			var table = new StatTable();
 			FormatHeader(table);
-			AppendBuildStats(_container.Builds, buildName, table);
+			AppendBuildStats(_container.Builds, buildName, table, buildName != null);
 			table.Append(sb);
 			_server.RaiseCommonMessage(sb.ToString());
 		}
@@ -107,17 +107,25 @@ namespace Server.Services {
 			table.AddNewRow("BUILD", "COUNT", "MIN", "MAX", "AVG", "LAST");
 		}
 
-		void AppendBuildStats(List<BuildStat> stats, string name, StatTable table) {
+		void AppendBuildStats(List<BuildStat> stats, string name, StatTable table, bool withTaskDetails) {
 			if ( string.IsNullOrEmpty(name) ) {
 				var builds = _server.FindBuilds();
 				foreach ( var buildName in builds.Keys ) {
 					var statsByName = stats.FindAll(s => IsSameName(s, buildName));
 					_logger.LogDebug($"Stats for {buildName}: {statsByName.Count}");
-					AppendBuildStats(statsByName, buildName, table);
+					AppendBuildStats(statsByName, buildName, table, withTaskDetails);
 				}
 				return;
 			}
-			table.AddNewRow(name);
+			if ( stats.Count > 0 ) {
+				AppendCommonBuildStats(stats, name, table);
+				if ( withTaskDetails ) {
+					AppendBuildTaskStats(stats, table);
+				}
+			}
+		}
+
+		/*void AppendShit(List<BuildStat> stats, StatTable table) {
 			if ( stats.Count > 1 ) {
 				var history = new List<BuildStat>(stats);
 				history.Reverse();
@@ -125,19 +133,60 @@ namespace Server.Services {
 				var min = history.Min(s => s.Duration.TotalSeconds);
 				var max = history.Max(s => s.Duration.TotalSeconds);
 				var avg = history.Average(s => s.Duration.TotalSeconds);
-				var last = stats.Last().Duration.TotalSeconds;
-				table.AddToRow(history.Count.ToString(), FormatSeconds(min), FormatSeconds(max), FormatSeconds(avg), FormatSeconds(last));
+				table.AddToRow(Utils.FormatSeconds(min), Utils.FormatSeconds(max), Utils.FormatSeconds(avg));
+			} else {
+				table.AddToRow("", "", "");
+			}
+			var last = stats.Last().Duration.TotalSeconds;
+			table.AddToRow(Utils.FormatSeconds(last));
+		}*/
+
+		void AppendCommonInfo<T>(List<T> stats, string name, StatTable table) where T : ICommonStat {
+			table.AddNewRow(name);
+			table.AddToRow(stats.Count.ToString());
+			if ( stats.Count > 1 ) {
+				var history = new List<T>(stats);
+				history.Reverse();
+				history = history.Skip(1).ToList();
+				var min = history.Min(s => s.Duration.TotalSeconds);
+				var max = history.Max(s => s.Duration.TotalSeconds);
+				var avg = history.Average(s => s.Duration.TotalSeconds);
+				table.AddToRow(Utils.FormatSeconds(min), Utils.FormatSeconds(max), Utils.FormatSeconds(avg));
+			} else {
+				table.AddToRow("", "", "");
+			}
+			var last = stats.Last().Duration.TotalSeconds;
+			table.AddToRow(Utils.FormatSeconds(last));
+		}
+
+		void AppendCommonBuildStats(List<BuildStat> stats, string name, StatTable table) {
+			AppendCommonInfo(stats, name, table);
+		}
+
+		void AppendBuildTaskStats(List<BuildStat> stats, StatTable table) {
+			table.FillNewRow("---");
+			var tasks = CollectTaskStatsByName(stats);
+			foreach (var taskList in tasks ) {
+				var taskName = taskList.First().Name;
+				AppendCommonInfo(taskList, taskName, table);
 			}
 		}
 
-		string FormatSeconds(double value) {
-			var ts = TimeSpan.FromSeconds(value);
-			if (value < 60 * 60 ) {
-				return ts.ToString(@"mm\:ss");
-			} else if (value < 60 * 60 * 24 ) {
-				return ts.ToString(@"hh\:mm\:ss");
+		List<List<TaskStat>> CollectTaskStatsByName(List<BuildStat> stats) {
+			var tasks = new List<List<TaskStat>>();
+			var taskMap = new Dictionary<string, List<TaskStat>>();
+			foreach ( var build in stats ) {
+				foreach ( var task in build.Tasks ) {
+					List<TaskStat> taskStats;
+					if ( !taskMap.TryGetValue(task.Name, out taskStats) ) {
+						taskStats = new List<TaskStat>();
+						tasks.Add(taskStats);
+						taskMap.Add(task.Name, taskStats);
+					}
+					taskStats.Add(task);
+				}
 			}
-			return ts.ToString(@"dd\.hh\:mm\:ss");
+			return tasks;
 		}
 
 		static bool IsSameName(BuildStat stat, string name) {
