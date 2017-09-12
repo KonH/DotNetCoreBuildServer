@@ -20,7 +20,7 @@ namespace Server.Runtime {
 			var handlers = _commands.Get(name);
 			if ( handlers != null ) {
 				foreach ( var handler in handlers ) {
-					if ( handler.Target == caller ) {
+					if ( (handler.Target == caller) || (handler.Target == null) ) {
 						handler.Handler.Invoke(args);
 					}
 				}

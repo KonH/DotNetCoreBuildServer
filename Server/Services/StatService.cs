@@ -27,7 +27,7 @@ namespace Server.Services {
 		public bool TryInit(BuildServer server, Project project) {
 			_server = server;
 			_server.OnInitBuild += OnInitBuild;
-			_server.AddCommand(this, "stats", "show stats about all builds", OnStatsRequested);
+			_server.AddCommand(null, "stats", "show stats about all builds", OnStatsRequested);
 			LoadContainer();
 			_logger.LogDebug($"Container: {_container.Builds.Count} builds");
 			return true;
@@ -118,12 +118,15 @@ namespace Server.Services {
 				return;
 			}
 			table.AddNewRow(name);
-			if ( stats.Count > 0 ) {
-				var min = stats.Min(s => s.Duration.TotalSeconds);
-				var max = stats.Max(s => s.Duration.TotalSeconds);
-				var avg = stats.Average(s => s.Duration.TotalSeconds);
+			if ( stats.Count > 1 ) {
+				var history = new List<BuildStat>(stats);
+				history.Reverse();
+				history = history.Skip(1).ToList();
+				var min = history.Min(s => s.Duration.TotalSeconds);
+				var max = history.Max(s => s.Duration.TotalSeconds);
+				var avg = history.Average(s => s.Duration.TotalSeconds);
 				var last = stats.Last().Duration.TotalSeconds;
-				table.AddToRow(stats.Count.ToString(), FormatSeconds(min), FormatSeconds(max), FormatSeconds(avg), FormatSeconds(last));
+				table.AddToRow(history.Count.ToString(), FormatSeconds(min), FormatSeconds(max), FormatSeconds(avg), FormatSeconds(last));
 			}
 		}
 
