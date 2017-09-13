@@ -8,7 +8,9 @@ using Server.Commands;
 
 namespace ConsoleClient {
 	class Program {
-		
+
+		static bool WithConsoleLog = false;
+
 		static void Main(string[] args) {
 			if (args.Length < 2) {
 				Console.WriteLine("You need to provide serverName and at least one config path!");
@@ -17,7 +19,9 @@ namespace ConsoleClient {
 			}
 
 			var loggerFactory = new LoggerFactory();
-			loggerFactory.AddConsole(CustomLogFilter);
+			if ( WithConsoleLog ) {
+				loggerFactory.AddConsole(CustomLogFilter);
+			}
 			loggerFactory.AddFile("log.txt");
 
 			var logger = loggerFactory.CreateLogger<Program>();
