@@ -466,5 +466,10 @@ namespace Server.Runtime {
 		public T FindService<T>() where T : class, IService {
 			return Services.Find(s => s is T) as T;
 		}
+
+		public void AddBuildHandler(object target, Action<string, RequestArgs> handler) {
+			_logger.LogDebug($"AddBuildHandler: \"{handler.GetMethodInfo().Name}\"");
+			Commands.AddBuildHandler(target, handler);
+		}
 	}
 }

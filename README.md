@@ -177,7 +177,7 @@ You can control your server with commands described below:
 
 ```
 - "status" - current server status
-- "build arg0 arg1 ... argN" - start build with given parameters
+- "buildName arg0 arg1 ... argN" - start build with given parameters
 - "abort" - stop current build immediately
 - "help" - show this message
 - "stop" - stop server
@@ -192,12 +192,12 @@ Build tasks executed in described order, if one task failed, all next tasks are 
 Using Slack integration, you can execute the same commands, when you mention your bot (at first word int your message). So, if you write in specific room:
 
 ```
-@buildbot build myBuild 1.0.0
+@buildbot myBuild 1.0.0
 ```
 It is recognized as:
 
 ```
-build myBuild 1.0.0
+myBuild 1.0.0
 ```
 
 And build is started (if exists).
