@@ -118,9 +118,33 @@ You can mark several tasks (one by one) as "parallel". This tasks run simultaneo
 		...
 	}
  }
+ ```
 
  In example above "task_a" and "task_b" start at same time, "task_c" started after "task_a" and "task_b" is done.
 
+ Also, you can setup parallel queues using "parallel_queue" parameter (it is used if value > 0):
+ 
+ ```
+{
+	"task_a": {
+		...,
+		"parallel": "true",
+		"parallel_queue": "1"
+	},
+	"task_b": {
+		...,
+		"parallel": "true",
+		"parallel_queue": "2"
+	},
+	"task_c": {
+		...,
+		"parallel": "true",
+		"parallel_queue": "2"
+	}
+ }
+ ```
+
+ In this case: "task_a" and "task_b" started simultaneously, "task_c" started after "task_b" and execution goes next after "task_a" and "task_c" is done.
 
 ## Start
 

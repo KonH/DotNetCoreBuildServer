@@ -18,6 +18,14 @@ namespace Server {
 			return def;
 		}
 
+		public static int GetInt<TKey>(this Dictionary<TKey, string> dict, TKey key, int def) {
+			var value = Get(dict, key);
+			if ( !string.IsNullOrEmpty(value) ) {
+				return int.Parse(value);
+			}
+			return def;
+		}
+
 		public static string FormatTimeSpan(TimeSpan ts) {
 			if ( ts.TotalHours < 1 ) {
 				return ts.ToString(@"mm\:ss");

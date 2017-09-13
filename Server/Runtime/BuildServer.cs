@@ -248,43 +248,78 @@ namespace Server.Runtime {
 
 		List<Task<bool>> InitTasks(List<BuildNode> nodes) {
 			var tasks = new List<Task<bool>>();
-			List<Task<bool>> parallelAccum = null;
+			Dictionary<BuildNode, Task<bool>> parallelAccum = null;
 			foreach ( var node in nodes ) {
 				_logger.LogDebug($"InitTasks: node: \"{node.Name}\" (\"{node.Command}\")");
 				var task = new Task<bool>(() => ProcessCommand(_build, _buildArgs, node));
 				if ( node.IsParallel ) {
 					if ( parallelAccum == null ) {
-						parallelAccum = new List<Task<bool>>();
+						parallelAccum = new Dictionary<BuildNode, Task<bool>>();
 					}
-					parallelAccum.Add(task);
+					parallelAccum.Add(node, task);
 				} else {
-					ProcessParallelTask(ref parallelAccum, tasks);
+					ProcessParallelTask(ref parallelAccum, nodes, tasks);
 					tasks.Add(task);
 				}
 			}
-			ProcessParallelTask(ref parallelAccum, tasks);
+			ProcessParallelTask(ref parallelAccum, nodes, tasks);
 			return tasks;
 		}
 
-		void ProcessParallelTask(ref List<Task<bool>> accum, List<Task<bool>> tasks) {
+		void ProcessParallelTask(ref Dictionary<BuildNode, Task<bool>> accum, List<BuildNode> nodes, List<Task<bool>> tasks) {
 			if ( accum != null ) {
-				tasks.Add(CreateParallelTask(accum));
+				tasks.Add(CreateParallelTask(accum, nodes));
 				accum = null;
 			}
 		}
 
-		Task<bool> CreateParallelTask(List<Task<bool>> tasks) {
-			return new Task<bool>(() => ParallelProcess(tasks));
+		Task<bool> CreateParallelTask(Dictionary<BuildNode, Task<bool>> accum, List<BuildNode> nodes) {
+			return new Task<bool>(() => ParallelProcess(accum, nodes));
 		}
 
-		bool ParallelProcess(List<Task<bool>> tasks) {
+		Dictionary<int, List<Task<bool>>> CreateQueuedTaskDict(Dictionary<BuildNode, Task<bool>> rawAccum) {
+			var queuedTasks = new Dictionary<int, List<Task<bool>>>();
+			foreach ( var nodeTask in rawAccum ) {
+				var queue = nodeTask.Key.ParallelQueue;
+				if ( !queuedTasks.ContainsKey(queue) ) {
+					queuedTasks.Add(queue, new List<Task<bool>>());
+				}
+				queuedTasks[queue].Add(nodeTask.Value);
+			}
+			return queuedTasks;
+		}
+
+		bool SequenceProcess(List<Task<bool>> tasks) {
 			foreach ( var task in tasks ) {
-				_logger.LogDebug($"Start parallel task: {tasks.IndexOf(task)}/{tasks.Count}");
+				_logger.LogDebug($"SequenceProcess: start task: {tasks.IndexOf(task) + 1}/{tasks.Count}");
+				task.Start();
+				task.Wait();
+				_logger.LogDebug($"SequenceProcess: done task: {tasks.IndexOf(task) + 1}/{tasks.Count}: {task.Result}");
+				if ( !task.Result ) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		bool ParallelProcess(Dictionary<BuildNode, Task<bool>> rawAccum, List<BuildNode> nodes) {
+			var queuedTasks = CreateQueuedTaskDict(rawAccum);
+			var accumTasks = new List<Task<bool>>();
+			foreach ( var parallelPack in queuedTasks ) {
+				if ( parallelPack.Key > 0 ) {
+					_logger.LogDebug($"ParallelProcess: queue: {parallelPack.Key}, tasks: {parallelPack.Value.Count}");
+					accumTasks.Add(new Task<bool>(() => SequenceProcess(parallelPack.Value)));
+				} else {
+					_logger.LogDebug($"ParallelProcess: non-queued tasks: {parallelPack.Value.Count}");
+					accumTasks.AddRange(parallelPack.Value);
+				}
+			}
+			foreach ( var task in accumTasks ) {
 				task.Start();
 			}
-			Task.WaitAll(tasks.ToArray());
+			Task.WaitAll(accumTasks.ToArray());
 			bool result = true;
-			foreach ( var task in tasks ) {
+			foreach ( var task in accumTasks ) {
 				result = result && task.Result;
 			}
 			return result;
