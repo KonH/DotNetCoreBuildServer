@@ -462,5 +462,9 @@ namespace Server.Runtime {
 			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
 			Commands.Add(name, new BuildCommand(target, description, (_) => handler.Invoke()));
 		}
+
+		public T FindService<T>() where T : class, IService {
+			return Services.Find(s => s is T) as T;
+		}
 	}
 }

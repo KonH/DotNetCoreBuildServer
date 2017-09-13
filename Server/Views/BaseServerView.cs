@@ -5,6 +5,7 @@ using Server.BuildConfig;
 using Server.Runtime;
 using Microsoft.Extensions.Logging;
 using System;
+using Server.Services;
 
 namespace Server.Views {
 	public abstract class BaseServerView {
@@ -47,7 +48,18 @@ namespace Server.Views {
 			var curTaskName = task.Node.Name;
 			var taskIndex = allTasks.IndexOf(task);
 			var totalTasks = allTasks.Count;
-			sb.Append($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}\n");
+			sb.AppendLine($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}");
+		}
+
+		protected void AppendEstimateTime(StringBuilder sb) {
+			var statService = Server.FindService<StatService>();
+			if ( statService != null ) {
+				if ( statService.HasStatistics(Process.Name)) {
+					sb.Append("Estimate end time: ");
+					sb.Append(statService.FindEstimateEndTime(Process.Name, Process.StartTime));
+					sb.AppendLine();
+				}
+			}
 		}
 
 		protected string GetStatusMessage() {
@@ -57,6 +69,7 @@ namespace Server.Views {
 			var curTasks = Process?.CurrentTasks;
 			if ((curTasks != null) && (curTasks.Count > 0)) {
 				curTasks.ForEach(t => AppendTaskInfo(t, sb));
+				AppendEstimateTime(sb);
 			}
 			sb.Append("Services:\n");
 			foreach (var service in Server.Services) {

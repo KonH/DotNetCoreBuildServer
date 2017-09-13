@@ -177,5 +177,22 @@ namespace Server.Services {
 		static bool IsSameName(BuildStat stat, string name) {
 			return stat.Name == name;
 		}
+
+		List<BuildStat> FindBuildsByName(string name) {
+			return _container.Builds.FindAll(b => IsSameName(b, name));
+		}
+
+		public bool HasStatistics(string buildName) {
+			return FindBuildsByName(buildName).Count > 0;
+		}
+
+		public DateTime FindEstimateEndTime(string buildName, DateTime startTime) {
+			var buildStats = FindBuildsByName(buildName);
+			if ( buildStats.Count > 0 ) {
+				var avgDuration = buildStats.Average(b => b.Duration.TotalSeconds);
+				return startTime.AddSeconds(avgDuration);
+			}
+			return DateTime.MinValue;
+		}
 	}
 }
