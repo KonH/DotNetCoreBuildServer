@@ -381,12 +381,16 @@ namespace Server.Runtime {
 			_logger.LogDebug($"ProcessCommand: \"{node.Name}\" (\"{node.Command}\")");
 			_process.StartTask(node);
 			var command = _commandFactory.Create(node);
-			_curCommands.Add(command);
+			lock ( _curCommands ) {
+				_curCommands.Add(command);
+			}
 			_logger.LogDebug($"ProcessCommand: command is \"{command.GetType().Name}\"");
 			var runtimeArgs = CreateRuntimeArgs(Project, build, buildArgs, node);
 			_logger.LogDebug($"ProcessCommand: runtimeArgs is {runtimeArgs.Count}");
 			var result = command.Execute(_loggerFactory, runtimeArgs);
-			_curCommands.Remove(command);
+			lock ( _curCommands ) {
+				_curCommands.Remove(command);
+			}
 			_logger.LogDebug(
 				$"ProcessCommand: result is [{result.IsSuccess}, \"{result.Message}\", \"{result.Result}\"]");
 			_process.DoneTask(node, _curTime, result);
