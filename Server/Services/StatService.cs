@@ -118,28 +118,13 @@ namespace Server.Services {
 				return;
 			}
 			if ( stats.Count > 0 ) {
-				AppendCommonBuildStats(stats, name, table);
+				var statsByName = stats.FindAll(s => IsSameName(s, name));
+				AppendCommonBuildStats(statsByName, name, table);
 				if ( withTaskDetails ) {
-					AppendBuildTaskStats(stats, table);
+					AppendBuildTaskStats(statsByName, table);
 				}
 			}
 		}
-
-		/*void AppendShit(List<BuildStat> stats, StatTable table) {
-			if ( stats.Count > 1 ) {
-				var history = new List<BuildStat>(stats);
-				history.Reverse();
-				history = history.Skip(1).ToList();
-				var min = history.Min(s => s.Duration.TotalSeconds);
-				var max = history.Max(s => s.Duration.TotalSeconds);
-				var avg = history.Average(s => s.Duration.TotalSeconds);
-				table.AddToRow(Utils.FormatSeconds(min), Utils.FormatSeconds(max), Utils.FormatSeconds(avg));
-			} else {
-				table.AddToRow("", "", "");
-			}
-			var last = stats.Last().Duration.TotalSeconds;
-			table.AddToRow(Utils.FormatSeconds(last));
-		}*/
 
 		void AppendCommonInfo<T>(List<T> stats, string name, StatTable table) where T : ICommonStat {
 			table.AddNewRow(name);
