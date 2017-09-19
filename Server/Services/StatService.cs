@@ -27,7 +27,7 @@ namespace Server.Services {
 		public bool TryInit(BuildServer server, Project project) {
 			_server = server;
 			_server.OnInitBuild += OnInitBuild;
-			_server.AddCommand(null, "stats", "show stats about all builds", OnStatsRequested);
+			_server.AddCommand("stats", "show stats about all builds", OnStatsRequested);
 			LoadContainer();
 			_logger.LogDebug($"Container: {_container.Builds.Count} builds");
 			return true;
@@ -66,7 +66,7 @@ namespace Server.Services {
 			}
 		}
 
-		private void OnInitBuild(BuildProcess process) {
+		private void OnInitBuild(RequestContext _, BuildProcess process) {
 			_logger.LogDebug("OnInitBuild");
 			_process = process;
 			process.BuildDone += OnBuildDone;
@@ -91,7 +91,7 @@ namespace Server.Services {
 			_container.Builds.Add(stat);
 		}
 
-		void OnStatsRequested(RequestArgs args) {
+		void OnStatsRequested(RequestContext context, RequestArgs args) {
 			_logger.LogDebug($"OnStatsRequested ({args.Count})");
 			var sb = new StringBuilder();
 			string buildName = args.Count > 0 ? args[0] : null;
@@ -100,7 +100,7 @@ namespace Server.Services {
 			FormatHeader(table);
 			AppendBuildStats(_container.Builds, buildName, table, buildName != null);
 			table.Append(sb);
-			_server.RaiseCommonMessage(sb.ToString());
+			_server.RaiseCommonMessage(context, sb.ToString());
 		}
 
 		void FormatHeader(StatTable table) {

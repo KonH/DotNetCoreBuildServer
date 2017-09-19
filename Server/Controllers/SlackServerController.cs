@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 namespace Server.Controllers {
 	public class SlackServerController:BaseServerController {
 
-		ILogger _logger;
+		ILogger      _logger;
+		SlackService _service;
 
-		public SlackServerController(LoggerFactory loggerFactory, SlackService service, BuildServer server) : base(loggerFactory, server) {
+		public SlackServerController(LoggerFactory loggerFactory, SlackService service, BuildServer server) : base(loggerFactory, service.Context, server) {
 			_logger = loggerFactory.CreateLogger<SlackServerController>();
-			service.OnMessage += OnSlackMessage;
+			_service = service;
+			_service.OnMessage += OnSlackMessage;
 		}
 
 		void OnSlackMessage(string message) {
@@ -19,7 +21,7 @@ namespace Server.Controllers {
 			if (parts.Length > 1) {
 				var actualMessage = string.Join(" ", parts.Skip(1).ToArray());
 				_logger.LogDebug($"SlackServerController.OnSlackMessage: actualMessage: \"{actualMessage}\"");
-				var request = ConvertMessage(actualMessage);
+				var request = ConvertMessage(Context, actualMessage);
 				Call(request);
 			}
 		}

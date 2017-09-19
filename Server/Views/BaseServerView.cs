@@ -10,6 +10,32 @@ using Server.Services;
 namespace Server.Views {
 	public abstract class BaseServerView {
 
+		class ContextWrapper {
+			RequestContext _context;
+
+			public ContextWrapper(RequestContext context) {
+				_context = context;
+			}
+
+			void CallOnContext(RequestContext context, Action action) {
+				if ( context.Name == _context.Name ) {
+					action();
+				}
+			}
+
+			public Action<RequestContext> Subscribe(Action action) {
+				return (c) => CallOnContext(c, action);
+			}
+
+			public Action<RequestContext, T1> Subscribe<T1>(Action<T1> action) {
+				return (c, a1) => CallOnContext(c, () => action(a1));
+			}
+
+			public Action<RequestContext, T1, T2> Subscribe<T1, T2>(Action<T1, T2> action) {
+				return (c, a1, a2) => CallOnContext(c, () => action(a1, a2));
+			}
+		}
+
 		public bool Alive => Server != null;
 		
 		protected BuildServer  Server;
@@ -17,16 +43,22 @@ namespace Server.Views {
 
 		ILogger _logger;
 
-		protected BaseServerView(LoggerFactory loggerFactory, BuildServer server) {
+		protected BaseServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server) {
 			_logger = loggerFactory.CreateLogger<BaseServerView>();
 			Server = server;
-			Server.OnCommonError   += OnCommonError;
-			Server.OnCommonMessage += OnCommonMessage;
-			Server.OnInitBuild     += OnInitBuild;
-			Server.OnHelpRequest   += OnHelpRequest;
-			Server.OnStatusRequest += OnStatusRequest;
-			Server.OnStop          += OnStop;
-			Server.LogFileChanged  += OnLogFileChanged;
+			var wrap = WithContext(context);
+			Server.OnCommonMessage += wrap.Subscribe<string>(OnCommonMessage);
+			Server.OnInitBuild     += wrap.Subscribe<BuildProcess>(OnInitBuild);
+			Server.OnHelpRequest   += wrap.Subscribe(OnHelpRequest);
+			Server.OnStatusRequest += wrap.Subscribe(OnStatusRequest);
+
+			Server.OnStop         += OnStop;
+			Server.OnCommonError  += OnCommonError;
+			Server.LogFileChanged += OnLogFileChanged;
+		}
+
+		ContextWrapper WithContext(RequestContext context) {
+			return new ContextWrapper(context);
 		}
 
 		protected abstract void OnCommonError(string message, bool isFatal);

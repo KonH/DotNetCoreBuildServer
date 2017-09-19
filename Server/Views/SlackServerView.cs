@@ -9,9 +9,7 @@ namespace Server.Views {
 		
 		readonly SlackService _service;
 
-		public SlackServerView(LoggerFactory loggerFactory, SlackService service, BuildServer server) : base(loggerFactory, server) {
-			_service = service;
-		}
+		public SlackServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server) : base(loggerFactory, context, server) {}
 
 		protected override void OnCommonError(string message, bool isFatal) {
 			if (isFatal) {

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace Server.Services {
 	public class ConsoleService:IService {
 
+		readonly RequestContext _context = new RequestContext("Console");
+
 		LoggerFactory _loggerFactory;
 
 		ConsoleServerController _controller;
@@ -18,15 +20,15 @@ namespace Server.Services {
 		}
 
 		public bool TryInit(BuildServer server, Project project) {
-			_controller = new ConsoleServerController(_loggerFactory, server);
-			_view       = new ConsoleServerView(_loggerFactory, server);
+			_controller = new ConsoleServerController(_loggerFactory, _context, server);
+			_view       = new ConsoleServerView(_loggerFactory, _context, server);
 			_loggerFactory.CreateLogger<ConsoleService>().LogDebug("ConsoleService: initialized");
 			return true;
 		}
 
 		public void Process() {
 			while (_view.Alive) {
-				_controller.SendRequest(Console.ReadLine());
+				_controller.SendRequest(_context, Console.ReadLine());
 			}
 		}
 	}

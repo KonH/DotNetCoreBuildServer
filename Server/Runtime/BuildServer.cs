@@ -13,11 +13,12 @@ using System.Threading.Tasks;
 namespace Server.Runtime {
 	public class BuildServer {
 
-		public event Action               OnStatusRequest;
+		public event Action<RequestContext>               OnStatusRequest;
+		public event Action<RequestContext, string>       OnCommonMessage;
+		public event Action<RequestContext>               OnHelpRequest;
+		public event Action<RequestContext, BuildProcess> OnInitBuild;
+
 		public event Action<string, bool> OnCommonError;
-		public event Action<string>       OnCommonMessage;
-		public event Action               OnHelpRequest;
-		public event Action<BuildProcess> OnInitBuild;
 		public event Action               OnStop;
 		public event Action<string>       LogFileChanged;
 
@@ -185,7 +186,7 @@ namespace Server.Runtime {
 			}
 		}
 		
-		public bool TryInitBuild(Build build) {
+		public bool TryInitBuild(RequestContext context, Build build) {
 			if (_process != null) {
 				RaiseCommonError("InitBuild: server is busy!", true);
 				return false;
@@ -195,7 +196,7 @@ namespace Server.Runtime {
 			_process = new BuildProcess(_loggerFactory, build);
 			var convertedLogFile = ConvertArgValue(Project, _build, null, build.LogFile);
 			LogFileChanged?.Invoke(convertedLogFile);
-			OnInitBuild?.Invoke(_process);
+			OnInitBuild?.Invoke(context, _process);
 			return true;
 		}
 
@@ -414,9 +415,9 @@ namespace Server.Runtime {
 			}
 		}
 		
-		public void RequestStatus() {
+		public void RequestStatus(RequestContext context) {
 			_logger.LogDebug("RequestStatus");
-			OnStatusRequest?.Invoke();
+			OnStatusRequest?.Invoke(context);
 		}
 
 		public void AbortBuild() {
@@ -442,9 +443,9 @@ namespace Server.Runtime {
 			_logger.LogDebug("StopServer: done");
 		}
 
-		public void RequestHelp() {
+		public void RequestHelp(RequestContext context) {
 			_logger.LogDebug("RequestHelp");
-			OnHelpRequest?.Invoke();
+			OnHelpRequest?.Invoke(context);
 		}
 
 		public void RaiseCommonError(string message, bool isFatal) {
@@ -452,28 +453,28 @@ namespace Server.Runtime {
 			OnCommonError?.Invoke(message, isFatal);
 		}
 
-		public void RaiseCommonMessage(string message) {
+		public void RaiseCommonMessage(RequestContext context, string message) {
 			_logger.LogDebug($"RaiseCommonMessage: \"{message}\"");
-			OnCommonMessage?.Invoke(message);
+			OnCommonMessage?.Invoke(context, message);
 		}
 
-		public void AddCommand(object target, string name, string description, Action<RequestArgs> handler) {
+		public void AddCommand(string name, string description, Action<RequestContext, RequestArgs> handler) {
 			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			Commands.Add(name, new BuildCommand(target, description, handler));
+			Commands.Add(name, new BuildCommand(description, handler));
 		}
 
-		public void AddCommand(object target, string name, string description, Action handler) {
+		public void AddCommand(string name, string description, Action<RequestContext> handler) {
 			_logger.LogDebug($"AddHandler: \"{name}\" => \"{handler.GetMethodInfo().Name}\"");
-			Commands.Add(name, new BuildCommand(target, description, (_) => handler.Invoke()));
+			Commands.Add(name, new BuildCommand(description, (context, _) => handler.Invoke(context)));
 		}
 
 		public T FindService<T>() where T : class, IService {
 			return Services.Find(s => s is T) as T;
 		}
 
-		public void AddBuildHandler(object target, Action<string, RequestArgs> handler) {
+		public void AddBuildHandler(Action<string, RequestContext, RequestArgs> handler) {
 			_logger.LogDebug($"AddBuildHandler: \"{handler.GetMethodInfo().Name}\"");
-			Commands.AddBuildHandler(target, handler);
+			Commands.AddBuildHandler(handler);
 		}
 	}
 }

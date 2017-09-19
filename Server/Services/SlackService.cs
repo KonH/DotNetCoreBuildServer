@@ -10,7 +10,9 @@ using SlackBotNet.Messages;
 
 namespace Server.Services {
 	public class SlackService:IService {
-		
+
+		public readonly RequestContext Context = new RequestContext("Slack");
+
 		public event Action<string> OnMessage;
 		
 		public SlackServerController Controller { get; private set; }
@@ -62,7 +64,7 @@ namespace Server.Services {
 				return null;
 			});
 			Controller = new SlackServerController(_loggerFactory, this, server);
-			View       = new SlackServerView(_loggerFactory, this, server);
+			View       = new SlackServerView(_loggerFactory, Context, server);
 			return true;
 		}
 

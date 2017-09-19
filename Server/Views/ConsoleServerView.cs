@@ -13,7 +13,7 @@ namespace Server.Views {
 
 		object logLock = new object();
 
-		public ConsoleServerView(LoggerFactory loggerFactory, BuildServer server) : base(loggerFactory, server) {
+		public ConsoleServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server) : base(loggerFactory, context, server) {
 			_logger = loggerFactory.CreateLogger<ConsoleServerView>();
 		}
 
