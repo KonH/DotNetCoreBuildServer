@@ -158,10 +158,14 @@ namespace Server.Services {
 		}
 
 		List<List<TaskStat>> CollectTaskStatsByName(List<BuildStat> stats) {
+			var lastBuild = stats.Last();
 			var tasks = new List<List<TaskStat>>();
 			var taskMap = new Dictionary<string, List<TaskStat>>();
 			foreach ( var build in stats ) {
 				foreach ( var task in build.Tasks ) {
+					if ( lastBuild.Tasks.Find(t => t.Name == task.Name) == null ) {
+						continue;
+					}
 					List<TaskStat> taskStats;
 					if ( !taskMap.TryGetValue(task.Name, out taskStats) ) {
 						taskStats = new List<TaskStat>();
