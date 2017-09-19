@@ -19,9 +19,12 @@ namespace Server.Services {
 		BuildProcess  _process;
 		StatContainer _container;
 
-		public StatService(string containerPath, LoggerFactory loggerFactory) {
+		bool _skipShortTasks;
+
+		public StatService(string containerPath, LoggerFactory loggerFactory, bool skipShortTasks) {
 			ContainerPath = containerPath;
 			_logger = loggerFactory.CreateLogger<StatService>();
+			_skipShortTasks = skipShortTasks;
 		}
 
 		public bool TryInit(BuildServer server, Project project) {
@@ -164,6 +167,9 @@ namespace Server.Services {
 			foreach ( var build in stats ) {
 				foreach ( var task in build.Tasks ) {
 					if ( lastBuild.Tasks.Find(t => t.Name == task.Name) == null ) {
+						continue;
+					}
+					if(_skipShortTasks && (task.Duration.TotalSeconds < 1) ) {
 						continue;
 					}
 					List<TaskStat> taskStats;
