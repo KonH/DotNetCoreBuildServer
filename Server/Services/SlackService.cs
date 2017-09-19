@@ -64,7 +64,7 @@ namespace Server.Services {
 				return null;
 			});
 			Controller = new SlackServerController(_loggerFactory, this, server);
-			View       = new SlackServerView(_loggerFactory, Context, server);
+			View       = new SlackServerView(_loggerFactory, this, server);
 			return true;
 		}
 
