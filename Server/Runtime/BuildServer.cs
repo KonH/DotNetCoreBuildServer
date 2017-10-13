@@ -156,9 +156,9 @@ namespace Server.Runtime {
 			}
 		}
 		
-		public bool TryInitialize(out string errorMessage, List<IService> services, params string[] projectPathes) {
+		public bool TryInitialize(out string errorMessage, List<IService> services, List<string> projectPathes) {
 			_logger.LogDebug(
-				$"TryInitialize: services: {services.Count()}, pathes: {projectPathes.Length}");
+				$"TryInitialize: services: {services.Count()}, pathes: {projectPathes.Count}");
 			try {
 				Project = Project.Load(_loggerFactory, Name, projectPathes);
 			} catch (Exception e) {

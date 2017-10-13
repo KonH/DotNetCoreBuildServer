@@ -13,7 +13,7 @@ namespace Server.BuildConfig {
 			Keys = keys;
 		}
 		
-		public static Project Load(LoggerFactory loggerFactory, string serverName, string[] pathes) {
+		public static Project Load(LoggerFactory loggerFactory, string serverName, List<string> pathes) {
 			var logger = loggerFactory.CreateLogger<Project>();
 			var builder = new ConfigurationBuilder();
 			foreach (var path in pathes) {

@@ -6,15 +6,21 @@ using Server.Views;
 using Microsoft.Extensions.Logging;
 
 namespace Server.Services {
-	public class ConsoleService:IService {
+	public class ConsoleService : IService, IContextService {
 
 		readonly RequestContext _context = new RequestContext("Console");
+
+		public RequestContext Context {
+			get {
+				return _context;
+			}
+		}
 
 		LoggerFactory _loggerFactory;
 
 		ConsoleServerController _controller;
 		ConsoleServerView       _view;
-		
+
 		public ConsoleService(LoggerFactory loggerFactory) {
 			_loggerFactory = loggerFactory;
 		}

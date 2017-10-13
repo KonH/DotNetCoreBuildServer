@@ -9,14 +9,22 @@ using Microsoft.Extensions.Logging;
 using SlackBotNet.Messages;
 
 namespace Server.Services {
-	public class SlackService:IService {
+	public class SlackService : IService, IContextService {
 
-		public readonly RequestContext Context = new RequestContext("Slack");
+		readonly RequestContext _context = new RequestContext("Slack");
+
+		public RequestContext Context {
+			get {
+				return _context;
+			}
+		}
 
 		public event Action<string> OnMessage;
 		
 		public SlackServerController Controller { get; private set; }
 		public SlackServerView       View       { get; private set; }
+
+
 
 		LoggerFactory _loggerFactory;
 		ILogger       _logger;

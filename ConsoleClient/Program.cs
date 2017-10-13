@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Server.Services;
 using Server.Runtime;
 using Microsoft.Extensions.Logging;
@@ -12,7 +11,9 @@ namespace ConsoleClient {
 		static bool WithConsoleLog = false;
 
 		static void Main(string[] args) {
-			if (args.Length < 2) {
+			var serverName = EnvManager.FindArgumentValue("server");
+			var configPathes = EnvManager.FindArgumentValues("config");
+			if ( string.IsNullOrEmpty(serverName) || (configPathes.Count < 1) ) {
 				Console.WriteLine("You need to provide serverName and at least one config path!");
 				Console.WriteLine("Closing...");
 				return;
@@ -24,18 +25,19 @@ namespace ConsoleClient {
 			}
 			loggerFactory.AddFile("log.txt", false);
 
-			var serverName = args[0];
-			var serverArgs = args.Skip(1).ToArray();
 			var consoleService = new ConsoleService(loggerFactory);
+
 			var services = new List<IService> {
 				consoleService,
 				new SlackService(loggerFactory),
 				new StatService("stats.xml" , loggerFactory, true)
 			};
+			services.TryAddNotificationService(loggerFactory);
+
 			var commandFactory = new CommandFactory(loggerFactory);
 			var server = new BuildServer(commandFactory, loggerFactory, serverName);
 			string startUpError = null;
-			if (!server.TryInitialize(out startUpError, services, serverArgs)) {
+			if (!server.TryInitialize(out startUpError, services, configPathes)) {
 				Console.WriteLine(startUpError);
 				Console.WriteLine("Closing...");
 				return;
