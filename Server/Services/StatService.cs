@@ -30,7 +30,8 @@ namespace Server.Services {
 		public bool TryInit(BuildServer server, Project project) {
 			_server = server;
 			_server.OnInitBuild += OnInitBuild;
-			_server.AddCommand("stats", "show stats about all builds", OnStatsRequested);
+			_server.AddCommand("stats", "show stats about builds", OnStatsRequested);
+			_server.AddCommand("history", "show history about builds", OnHistoryRequested);
 			LoadContainer();
 			_logger.LogDebug($"Container: {_container.Builds.Count} builds");
 			return true;
@@ -87,7 +88,7 @@ namespace Server.Services {
 		}
 
 		void AddBuildStat(BuildProcess process) {
-			var stat = new BuildStat(process.Name, process.StartTime, process.WorkTime);
+			var stat = new BuildStat(process.Name, _server.FindCurrentBuildArgs(), process.StartTime, process.WorkTime);
 			foreach ( var task in process.Tasks ) {
 				stat.Tasks.Add(new TaskStat(task.Node.Name, task.StartTime, task.EndTime - task.StartTime));
 			}
@@ -100,14 +101,30 @@ namespace Server.Services {
 			string buildName = args.Count > 0 ? args[0] : null;
 			sb.Append(buildName == null ? "Stats:\n" : $"Stats ({buildName}):\n");
 			var table = new StatTable();
-			FormatHeader(table);
+			FormatStatHeader(table);
 			AppendBuildStats(_container.Builds, buildName, table, buildName != null);
 			table.Append(sb);
 			_server.RaiseCommonMessage(context, sb.ToString());
 		}
 
-		void FormatHeader(StatTable table) {
+		void OnHistoryRequested(RequestContext context, RequestArgs args) {
+			_logger.LogDebug($"OnHistoryRequested: ({args.Count})");
+			var sb = new StringBuilder();
+			string buildName = args.Count > 0 ? args[0] : null;
+			sb.Append(buildName == null ? "History:\n" : $"History ({buildName}):\n");
+			var table = new StatTable();
+			FormatHistoryHeader(table);
+			AppendHistoryStats(_container.Builds, buildName, table);
+			table.Append(sb);
+			_server.RaiseCommonMessage(context, sb.ToString());
+		}
+
+		void FormatStatHeader(StatTable table) {
 			table.AddNewRow("BUILD", "COUNT", "MIN", "MAX", "AVG", "LAST");
+		}
+
+		void FormatHistoryHeader(StatTable table) {
+			table.AddNewRow("BUILD", "ARGS", "DATE", "DURATION");
 		}
 
 		void AppendBuildStats(List<BuildStat> stats, string name, StatTable table, bool withTaskDetails) {
@@ -127,6 +144,25 @@ namespace Server.Services {
 					AppendBuildTaskStats(statsByName, table);
 				}
 			}
+		}
+
+		void AppendHistoryStats(List<BuildStat> stats, string buildName, StatTable table) {
+			var actualStats = string.IsNullOrEmpty(buildName) ? stats : stats.FindAll(s => IsSameName(s, buildName));
+			foreach ( var stat in actualStats ) {
+				var name = stat.Name;
+				var args = stat.Args;
+				var date = stat.Start;
+				var duration = stat.Duration;
+				table.AddNewRow(name, FormatArgs(args), date.ToShortDateString(), Utils.FormatTimeSpan(duration));
+			}
+		}
+
+		string FormatArgs(List<DictItem> items) {
+			var str = "";
+			foreach ( var item in items ) {
+				str += $"{item.Key}:{item.Value}";
+			}
+			return str;
 		}
 
 		void AppendCommonInfo<T>(List<T> stats, string name, StatTable table) where T : ICommonStat {
