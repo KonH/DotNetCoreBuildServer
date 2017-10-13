@@ -161,13 +161,13 @@ Next, you need to run server:
 
 ```
 cd ConsoleClient/bin/Release/netcoreapp1.1/
-dotnet ConsoleClient.dll serverName configs
+dotnet ConsoleClient.dll -server=serverName -config=configName
 ```
 
 Where:
 
 * serverName - your server name
-* configs - path to at least one **.json** project config
+* configName - path to **.json** project config (you can set several config files, but at least one is required)
 
 After that, your server is ready to use and works before you decide to stop it.
 
