@@ -70,6 +70,13 @@ namespace Server.Views {
 			foreach ( var handler in Server.Commands.All ) {
 				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
 			}
+			sb.Append("Services:\n");
+			foreach ( var service in Server.Services ) {
+				sb.Append($"- {service.GetType().Name}\n");
+			}
+			sb.Append("Builds:\n");
+			var builds = Server.FindBuilds();
+			AppendBuildsInfo(sb, builds);
 			return sb.ToString();
 		}
 
@@ -103,13 +110,6 @@ namespace Server.Views {
 				curTasks.ForEach(t => AppendTaskInfo(t, sb));
 				AppendEstimateTime(sb);
 			}
-			sb.Append("Services:\n");
-			foreach (var service in Server.Services) {
-				sb.Append($"- {service.GetType().Name}\n");
-			}
-			sb.Append("Builds:\n");
-			var builds = Server.FindBuilds();
-			AppendBuildsInfo(sb, builds);
 			return sb.ToString();
 		}
 

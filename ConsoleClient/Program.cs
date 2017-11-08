@@ -16,6 +16,7 @@ namespace ConsoleClient {
 			if ( string.IsNullOrEmpty(serverName) || (configPathes.Count < 1) ) {
 				Console.WriteLine("You need to provide serverName and at least one config path!");
 				Console.WriteLine("Closing...");
+				Console.ReadKey();
 				return;
 			}
 
@@ -40,6 +41,7 @@ namespace ConsoleClient {
 			if (!server.TryInitialize(out startUpError, services, configPathes)) {
 				Console.WriteLine(startUpError);
 				Console.WriteLine("Closing...");
+				Console.ReadKey();
 				return;
 			}
 			Console.WriteLine($"{server.ServiceName} started and ready to use.");
