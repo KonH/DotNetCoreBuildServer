@@ -65,6 +65,7 @@ namespace Server.Commands {
 				}
 				var errorRegex = args.Get("error_regex");
 				var resultRegex = args.Get("result_regex");
+				var checkResultValue = !string.IsNullOrEmpty(resultRegex);
 				var isRightToLeft = args.Get("result_right_to_left");
 				var isRightToLeftValue = !string.IsNullOrEmpty(isRightToLeft) && bool.Parse(isRightToLeft);
 				if (!string.IsNullOrEmpty(logFile)) {
@@ -88,12 +89,12 @@ namespace Server.Commands {
 						}
 					} while (!isDone);
 					var result = GetResultMessage(resultRegex, logContent, isRightToLeftValue);
-					return CheckCommandResult(errorRegex, logContent, msg, result);
+					return CheckCommandResult(errorRegex, logContent, msg, checkResultValue, result);
 				} else {
 					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
 					var msg = _inMemoryLog;
 					var result = GetResultMessage(resultRegex, msg, isRightToLeftValue);
-					return CheckCommandResult(errorRegex, msg, msg, result);
+					return CheckCommandResult(errorRegex, msg, msg, checkResultValue, result);
 				}
 			}
 			catch (Exception e) {
@@ -159,9 +160,9 @@ namespace Server.Commands {
 			return false;
 		}
 		
-		CommandResult CheckCommandResult(string errorRegex, string messageToCheck, string messageToShow, string result) {
+		CommandResult CheckCommandResult(string errorRegex, string messageToCheck, string messageToShow, bool checkResultValue, string result) {
 			return
-				ContainsError(errorRegex, messageToCheck) ?
+				ContainsError(errorRegex, messageToCheck) || (checkResultValue && string.IsNullOrEmpty(result)) ?
 					CommandResult.Fail(messageToShow) : 
 					CommandResult.Success(messageToShow, result);
 		}
