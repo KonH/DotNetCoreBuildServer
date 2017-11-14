@@ -66,6 +66,7 @@ namespace Server.Views {
 
 		protected string GetHelpMessage() {
 			var sb = new StringBuilder();
+			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
 			sb.Append("Commands:\n");
 			foreach ( var handler in Server.Commands.All ) {
 				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
@@ -103,8 +104,9 @@ namespace Server.Views {
 
 		protected string GetStatusMessage() {
 			var sb = new StringBuilder();
-			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
-			sb.Append($"Is busy: {Process != null}\n");
+			if ( Process == null ) {
+				sb.Append("Is busy: false\n");
+			}
 			var curTasks = Process?.CurrentTasks;
 			if ((curTasks != null) && (curTasks.Count > 0)) {
 				curTasks.ForEach(t => AppendTaskInfo(t, sb));

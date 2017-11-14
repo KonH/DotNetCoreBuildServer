@@ -96,9 +96,8 @@ namespace Server.Services {
 		public async void SendMessage(string message) {
 			_logger.LogDebug($"SendMessage: \"{message}\"");
 			var hubState = _bot.State.GetHub(_hub);
-			var fullMessage = string.Format("[{0}]\n {1}", _name, message);
 			try {
-				await _bot.SendAsync(hubState, fullMessage);
+				await _bot.SendAsync(hubState, message);
 			} catch (Exception e) {
 				_logger.LogError($"SendMessage: exception: \"{e}\"");
 			}
