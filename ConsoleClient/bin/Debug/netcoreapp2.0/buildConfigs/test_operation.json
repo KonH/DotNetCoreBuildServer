@@ -1,0 +1,22 @@
+﻿{
+	"args": [],
+	"log_file": "op_log.txt",
+  "tasks": [
+    {
+      "test_op": {
+        "run": {
+          "path": "timeout",
+          "args": "3",
+          "warning_timeout": "1s"
+        }
+      }
+    },
+    {
+      "report": {
+        "print": {
+          "message": "some output"
+        }
+      }
+    }
+  ]
+}
