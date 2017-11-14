@@ -7,9 +7,6 @@ using Server.Commands;
 
 namespace ConsoleClient {
 	class Program {
-
-		static bool WithConsoleLog = false;
-
 		static void Main(string[] args) {
 			var serverName = EnvManager.FindArgumentValue("server");
 			var configPathes = EnvManager.FindArgumentValues("config");
@@ -21,7 +18,7 @@ namespace ConsoleClient {
 			}
 
 			var loggerFactory = new LoggerFactory();
-			if ( WithConsoleLog ) {
+			if ( EnvManager.HasArgument("-console-log") ) {
 				loggerFactory.AddConsole(CustomLogFilter);
 			}
 			loggerFactory.AddFile("log.txt", false);

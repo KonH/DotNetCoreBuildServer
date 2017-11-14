@@ -4,6 +4,24 @@ using System.Collections.Generic;
 namespace Server {
 	public static class Utils {
 
+		public static bool TryParseTimeSpan(string str, string ending, Func<int, TimeSpan> generator, out TimeSpan span) {
+			if ( str.EndsWith(ending) ) {
+				var valueStr = str.Substring(0, str.Length - ending.Length);
+				if ( int.TryParse(valueStr, out int value) ) {
+					span = generator(value);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public static bool TryParseTimeSpan(string str, out TimeSpan span) {
+			return
+				TryParseTimeSpan(str, "h", t => TimeSpan.FromHours(t), out span) ||
+				TryParseTimeSpan(str, "m", t => TimeSpan.FromMinutes(t), out span) ||
+				TryParseTimeSpan(str, "s", t => TimeSpan.FromSeconds(t), out span);
+		}
+
 		public static TValue Get<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) {
 			var value = default(TValue);
 			dict?.TryGetValue(key, out value);

@@ -23,5 +23,9 @@ namespace ConsoleClient {
 			}
 			return argValues;
 		}
+
+		public static bool HasArgument(string argument) {
+			return Environment.GetCommandLineArgs().Contains(argument);
+		}
 	}
 }
