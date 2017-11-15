@@ -9,6 +9,7 @@ using Server.Commands;
 using Server.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Server.Runtime {
 	public class BuildServer {
@@ -42,7 +43,7 @@ namespace Server.Runtime {
 		BuildProcess   _process;
 		List<ICommand> _curCommands = new List<ICommand>();
 		
-		Dictionary<string, string> _taskStates = new Dictionary<string, string>();
+		ConcurrentDictionary<string, string> _taskStates = new ConcurrentDictionary<string, string>();
 		
 		DateTime _curTime => DateTime.Now;
 
@@ -243,7 +244,7 @@ namespace Server.Runtime {
 			_build     = null;
 			_thread    = null;
 			_process   = null;
-			_taskStates = new Dictionary<string, string>();
+			_taskStates = new ConcurrentDictionary<string, string>();
 			_logger.LogDebug("ProcessBuild: cleared");
 		}
 
@@ -407,11 +408,13 @@ namespace Server.Runtime {
 		void AddTaskState(string taskName, string key, string value) {
 			var fullKey = $"{taskName}:{key}";
 			if ( _taskStates.ContainsKey(fullKey) ) {
-				_taskStates[fullKey] = value;
-				_logger.LogDebug($"AddTaskState: Override \"{fullKey}\"=>\"{value}\"");
+				var curValue = string.Empty;
+				var getSuccess = _taskStates.TryGetValue(fullKey, out curValue);
+				var updateSuccess = _taskStates.TryUpdate(fullKey, value, curValue);
+				_logger.LogDebug($"AddTaskState: Override \"{fullKey}\"=>\"{value}\" (get success: {getSuccess}, update success: {updateSuccess})");
 			} else {
-				_taskStates.Add(fullKey, value);
-				_logger.LogDebug($"AddTaskState: Add \"{fullKey}\"=>\"{value}\"");
+				var addSuccess = _taskStates.TryAdd(fullKey, value);
+				_logger.LogDebug($"AddTaskState: Add \"{fullKey}\"=>\"{value}\" (add success: {addSuccess})");
 			}
 		}
 		
