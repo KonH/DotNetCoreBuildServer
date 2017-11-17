@@ -13,7 +13,8 @@ namespace Server.Views {
 
 		object logLock = new object();
 
-		public ConsoleServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server) : base(loggerFactory, context, server) {
+		public ConsoleServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server, MessageFormat messageFormat) : 
+			base(loggerFactory, context, server, messageFormat) {
 			_logger = loggerFactory.CreateLogger<ConsoleServerView>();
 		}
 
@@ -76,7 +77,7 @@ namespace Server.Views {
 				WriteLine("Last task message:");
 				WriteLine(lastTask.Message);
 			} else {
-				WriteLine(GetTasksInfo(Process.Tasks));
+				WriteLine(GetFailedTasksInfo(Process.Tasks));
 			}
 			base.OnBuildProcessDone();
 		}

@@ -41,10 +41,12 @@ namespace Server.Views {
 		protected BuildServer  Server;
 		protected BuildProcess Process;
 
-		ILogger _logger;
+		ILogger       _logger;
+		MessageFormat _messageFormat;
 
-		protected BaseServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server) {
+		protected BaseServerView(LoggerFactory loggerFactory, RequestContext context, BuildServer server, MessageFormat messageFormat) {
 			_logger = loggerFactory.CreateLogger<BaseServerView>();
+			_messageFormat = messageFormat;
 			Server = server;
 			var wrap = WithContext(context);
 			Server.OnCommonMessage += wrap.Subscribe<string>(OnCommonMessage);
@@ -209,6 +211,18 @@ namespace Server.Views {
 			return tasks.Aggregate("", (current, task) => current + $"{GetTaskInfo(task)}\n");
 		}
 
+		protected string GetFailedTasksInfo(List<BuildTask> tasks) {
+			return GetTasksInfo(tasks.Where(t => t.IsStarted && !t.IsSuccess).ToList());
+		}
+
 		protected virtual void OnLogFileChanged(string logFile) { }
+
+		protected string GetFailMessage() {
+			switch ( _messageFormat ) {
+				case MessageFormat.FullFailMessage    : return GetTasksInfo(Process.Tasks);
+				case MessageFormat.LastTaskFailMessage: return GetFailedTasksInfo(Process.Tasks);
+				default                               : return string.Empty;
+			}
+		}
 	}
 }

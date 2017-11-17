@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Server.Services;
 using Server.Runtime;
+using Server.Views;
 using Microsoft.Extensions.Logging;
 using Server.Commands;
 
@@ -23,11 +24,13 @@ namespace ConsoleClient {
 			}
 			loggerFactory.AddFile("log.txt", false);
 
-			var consoleService = new ConsoleService(loggerFactory);
+			var messageFormat = MessageFormat.LastTaskFailMessage;
+
+			var consoleService = new ConsoleService(loggerFactory, messageFormat);
 
 			var services = new List<IService> {
 				consoleService,
-				new SlackService(loggerFactory),
+				new SlackService(loggerFactory, messageFormat),
 				new StatService("stats.xml" , loggerFactory, true)
 			};
 			services.TryAddNotificationService(loggerFactory);

@@ -17,17 +17,18 @@ namespace Server.Services {
 		}
 
 		LoggerFactory _loggerFactory;
+		MessageFormat _messageFormat;
 
 		ConsoleServerController _controller;
 		ConsoleServerView       _view;
 
-		public ConsoleService(LoggerFactory loggerFactory) {
+		public ConsoleService(LoggerFactory loggerFactory, MessageFormat messageFormat) {
 			_loggerFactory = loggerFactory;
 		}
 
 		public bool TryInit(BuildServer server, Project project) {
 			_controller = new ConsoleServerController(_loggerFactory, _context, server);
-			_view       = new ConsoleServerView(_loggerFactory, _context, server);
+			_view       = new ConsoleServerView(_loggerFactory, _context, server, _messageFormat);
 			_loggerFactory.CreateLogger<ConsoleService>().LogDebug("ConsoleService: initialized");
 			return true;
 		}

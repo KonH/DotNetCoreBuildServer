@@ -28,6 +28,7 @@ namespace Server.Services {
 
 		LoggerFactory _loggerFactory;
 		ILogger       _logger;
+		MessageFormat _messageFormat;
 
 		string   _name;
 		string   _hub;
@@ -38,9 +39,10 @@ namespace Server.Services {
 				!(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hub));
 		}
 		
-		public SlackService(LoggerFactory loggerFactory) {
+		public SlackService(LoggerFactory loggerFactory, MessageFormat messageFormat) {
 			_loggerFactory = loggerFactory;
 			_logger = _loggerFactory.CreateLogger<SlackService>();
+			_messageFormat = messageFormat;
 		}
 
 		public bool TryInit(BuildServer server, Project project) {
@@ -72,7 +74,7 @@ namespace Server.Services {
 				return null;
 			});
 			Controller = new SlackServerController(_loggerFactory, this, server);
-			View       = new SlackServerView(_loggerFactory, this, server);
+			View       = new SlackServerView(_loggerFactory, this, server, _messageFormat);
 			return true;
 		}
 

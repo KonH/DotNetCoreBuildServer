@@ -7,10 +7,11 @@ using Microsoft.Extensions.Logging;
 namespace Server.Views {
 	public class SlackServerView:BaseServerView {
 		
-		readonly SlackService _service;
+		readonly SlackService  _service;
 
-		public SlackServerView(LoggerFactory loggerFactory, SlackService service, BuildServer server) : base(loggerFactory, service.Context, server) {
-			_service = service;
+		public SlackServerView(LoggerFactory loggerFactory, SlackService service, BuildServer server, MessageFormat messageFormat) : 
+			base(loggerFactory, service.Context, server, messageFormat) {
+			_service       = service;
 		}
 
 		protected override void OnCommonError(string message, bool isFatal) {
@@ -53,7 +54,7 @@ namespace Server.Views {
 				sb.Append("\n```");
 			} else {
 				sb.Append("```\n");
-				sb.Append(GetTasksInfo(Process.Tasks));
+				sb.Append(GetFailMessage());
 				sb.Append("```\n");
 			}
 			_service.SendMessage(sb.ToString());
