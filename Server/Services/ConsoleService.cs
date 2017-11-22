@@ -24,6 +24,7 @@ namespace Server.Services {
 
 		public ConsoleService(LoggerFactory loggerFactory, MessageFormat messageFormat) {
 			_loggerFactory = loggerFactory;
+			_messageFormat = messageFormat;
 		}
 
 		public bool TryInit(BuildServer server, Project project) {
