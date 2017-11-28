@@ -38,7 +38,7 @@ namespace Server.Services {
 		}
 
 		XmlSerializer CreateSerializer() {
-			return new XmlSerializer(typeof(StatContainer));
+			return XmlSerializer.FromTypes(new[] { typeof(StatContainer) })[0];
 		}
 
 		void LoadContainer() {
