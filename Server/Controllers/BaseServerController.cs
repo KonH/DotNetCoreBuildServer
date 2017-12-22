@@ -58,8 +58,8 @@ namespace Server.Controllers {
 					true);
 				return;
 			}
-			if (Server.TryInitBuild(Context, build)) {
-				var buildArgs = args.ToArray();
+			var buildArgs = args.ToArray();
+			if (Server.TryInitBuild(Context, build, buildArgs)) {
 				Server.StartBuild(buildArgs);
 			}
 		}

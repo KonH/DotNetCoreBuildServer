@@ -10,6 +10,7 @@ using Server.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace Server.Runtime {
 	public class BuildServer {
@@ -187,10 +188,27 @@ namespace Server.Runtime {
 			}
 		}
 		
-		public bool TryInitBuild(RequestContext context, Build build) {
+		bool IsValidBuildArg(string arg, string checkRegex) {
+			if ( !string.IsNullOrWhiteSpace(checkRegex) ) {
+				var regex = new Regex(checkRegex);
+				return regex.IsMatch(arg);
+			}
+			return true;
+		}
+
+		public bool TryInitBuild(RequestContext context, Build build, string[] buildArgs) {
 			if (_process != null) {
 				RaiseCommonError("InitBuild: server is busy!", true);
 				return false;
+			}
+			for ( var i = 0; i < buildArgs.Length; i++ ) {
+				var curArg = buildArgs[i];
+				var argName = build.Args.ElementAtOrDefault(i);
+				var argCheck = build.Checks.ElementAtOrDefault(i);
+				if ( !IsValidBuildArg(curArg, argCheck) ) {
+					RaiseCommonError($"InitBuild: argument '{argName}' is invalid: '{curArg}' don't maches by '{argCheck}'!", true);
+					return false;
+				}
 			}
 			_logger.LogDebug($"InitBuild: \"{build.Name}\"");
 			_build = build;

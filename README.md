@@ -56,6 +56,9 @@ Build config looks like this:
 	"args": [
 		"arg_0", "arg_1", ... "arg_N"	
 	],
+	"args_check": [
+		"", "", ... ""	
+	],
 	"log_file": "path_to_logfile",
 	"tasks": [
 		{
@@ -71,6 +74,8 @@ Build config looks like this:
 	]
 }
 ```
+
+"args_check" is optional and it is a array of regex's, args is checked against them before build.
 
 "log_file" is optional, in this file full build output will be redirected.
 

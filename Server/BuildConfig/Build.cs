@@ -10,12 +10,14 @@ namespace Server.BuildConfig {
 		public string          Name    { get; }
 		public string          LogFile { get; }
 		public List<string>    Args    { get; }
+		public List<string>    Checks  { get; }
 		public List<BuildNode> Nodes   { get; }
 
-		Build(string name, string logFile, IEnumerable<string> args, IEnumerable<BuildNode> nodes) {
+		Build(string name, string logFile, IEnumerable<string> args, IEnumerable<string> checks, IEnumerable<BuildNode> nodes) {
 			Name    = name;
 			LogFile = logFile;
 			Args    = args.ToList();
+			Checks  = checks.ToList();
 			Nodes   = nodes.ToList();
 		}
 
@@ -59,10 +61,10 @@ namespace Server.BuildConfig {
 			return new SubBuildNode(buildName, buildArgs);
 		}
 
-		static void ProcessArgs(ILogger logger, IConfiguration node, List<string> args) {
+		static void ProcessArray(string name, ILogger logger, IConfiguration node, List<string> args) {
 			var argsContent = node.GetChildren();
-			args.AddRange(argsContent.Select(buildArg => buildArg.Value));
-			logger.LogDebug($"Load: args: {args.Count}");
+			args.AddRange(argsContent.Select(arg => arg.Value));
+			logger.LogDebug($"Load: {name}: {args.Count}");
 		}
 		
 		public static Build Load(LoggerFactory loggerFactory, string name, string path) {
@@ -71,20 +73,34 @@ namespace Server.BuildConfig {
 			var config = builder.Build();
 			var buildNodes = new List<BuildNode>();
 			var buildArgs = new List<string>();
+			var argsChecks = new List<string>();
 			var rootNodes = config.GetChildren();
 			string logFile = null;
 			foreach (var node in rootNodes) {
 				logger.LogDebug($"Build.Load: rootNode: \"{node.Key}\"");
-				if (node.Key == "tasks") {
-					ProcessTasks(logger, node, buildNodes);
-				} else if (node.Key == "args") {
-					ProcessArgs(logger, node, buildArgs);
-				} else if (node.Key == "log_file") {
-					logFile = node.Value;
-					logger.LogDebug($"Build.Load: Log file is \"{logFile}\"");
+				switch ( node.Key ) {
+					case "tasks": {
+							ProcessTasks(logger, node, buildNodes);
+							break;
+						}
+
+					case "args": {
+							ProcessArray("args", logger, node, buildArgs);
+							break;
+						}
+					case "args_check": {
+							ProcessArray("args_check", logger, node, argsChecks);
+							break;
+						}
+
+					case "log_file": {
+							logFile = node.Value;
+							logger.LogDebug($"Build.Load: Log file is \"{logFile}\"");
+							break;
+						}
 				}
 			}
-			var build = new Build(name, logFile, buildArgs, buildNodes);
+			var build = new Build(name, logFile, buildArgs, argsChecks, buildNodes);
 			return build;
 		}
 	}
