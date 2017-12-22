@@ -82,8 +82,8 @@ namespace Server.Controllers {
 		
 		protected ServerRequest ConvertMessage(RequestContext context, string message) {
 			message = message.Trim();
-			var allParts = message.Split(' ');
-			if (allParts.Length <= 0) {
+			var allParts = message.SplitByWhitespaces();
+			if (allParts.Count <= 0) {
 				return ServerRequest.Empty;
 			}
 			var request = allParts[0];

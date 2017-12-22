@@ -57,5 +57,24 @@ namespace Server {
 			var ts = TimeSpan.FromSeconds(value);
 			return FormatTimeSpan(ts);
 		}
+
+		public static List<string> SplitByWhitespaces(this string str) {
+			var parts = new List<string>();
+			var accum = "";
+			foreach ( var c in str ) {
+				if ( char.IsWhiteSpace(c) ) {
+					if ( !string.IsNullOrWhiteSpace(accum) ) {
+						parts.Add(accum);
+						accum = "";
+					}
+				} else {
+					accum += c;
+				}
+			}
+			if ( !string.IsNullOrWhiteSpace(accum) ) {
+				parts.Add(accum);
+			}
+			return parts;
+		}
 	}
 }
