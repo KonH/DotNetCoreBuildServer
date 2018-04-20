@@ -63,11 +63,14 @@ namespace Server.Commands {
 				if (_isAborted) {
 					throw new CommandAbortedException();
 				}
-				var errorRegex = args.Get("error_regex");
-				var resultRegex = args.Get("result_regex");
-				var checkResultValue = !string.IsNullOrEmpty(resultRegex);
-				var isRightToLeft = args.Get("result_right_to_left");
+				var errorRegex         = args.Get("error_regex");
+				var errorExitCode      = args.GetBoolean("error_exit_code", false);
+				var resultRegex        = args.Get("result_regex");
+				var checkResultValue   = !string.IsNullOrEmpty(resultRegex);
+				var isRightToLeft      = args.Get("result_right_to_left");
 				var isRightToLeftValue = !string.IsNullOrEmpty(isRightToLeft) && bool.Parse(isRightToLeft);
+				var messageToCheck     = string.Empty;
+				var messageToShow      = string.Empty;
 				if (!string.IsNullOrEmpty(logFile)) {
 					var msg = $"Log saved to {logFile}.";
 					string logContent = null;
@@ -88,14 +91,18 @@ namespace Server.Commands {
 							}
 						}
 					} while (!isDone);
-					var result = GetResultMessage(resultRegex, logContent, isRightToLeftValue);
-					return CheckCommandResult(errorRegex, logContent, msg, checkResultValue, result);
+					messageToCheck = logContent;
+					messageToShow  = msg;
 				} else {
-					_inMemoryLog = _inMemoryLog.TrimEnd('\n');
-					var msg = _inMemoryLog;
-					var result = GetResultMessage(resultRegex, msg, isRightToLeftValue);
-					return CheckCommandResult(errorRegex, msg, msg, checkResultValue, result);
+					_inMemoryLog   = _inMemoryLog.TrimEnd('\n');
+					messageToCheck = _inMemoryLog;
+					messageToShow  = _inMemoryLog;
 				}
+				var result = GetResultMessage(resultRegex, messageToCheck, isRightToLeftValue);
+				if ( errorExitCode ) {
+					return CheckCommandResultViaExitCode(process, messageToShow, result);
+				}
+				return CheckCommandResult(errorRegex, messageToCheck, messageToShow, checkResultValue, result);
 			}
 			catch (Exception e) {
 				if (e is CommandAbortedException) {
@@ -160,6 +167,14 @@ namespace Server.Commands {
 			return false;
 		}
 		
+		CommandResult CheckCommandResultViaExitCode(Process process, string messageToShow, string result) {
+			_logger.LogDebug($"Process exit code: {process.ExitCode}");
+			if ( process.ExitCode != 0 ) {
+				return CommandResult.Fail($"(exit code: {process.ExitCode}) {messageToShow}");
+			}
+			return CommandResult.Success(messageToShow, result);
+		}
+
 		CommandResult CheckCommandResult(string errorRegex, string messageToCheck, string messageToShow, bool checkResultValue, string result) {
 			return
 				ContainsError(errorRegex, messageToCheck) || (checkResultValue && string.IsNullOrEmpty(result)) ?
