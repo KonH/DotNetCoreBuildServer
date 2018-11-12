@@ -85,7 +85,7 @@ namespace Server.Services {
 			});
 		}
 
-		async void OnSendMessageFailure(ISendMessageQueue queue, IMessage message, ILogger logger, Exception exception) {
+		async void OnSendMessageFailure(IThrottleQueue<IMessage> queue, IMessage message, ILogger logger, Exception exception) {
 			if ( message.SendAttempts <= 5 ) {
 				logger?.LogWarning($"OnSendMessageFailure. Failed to send message {message.Text}. Tried {message.SendAttempts} times (exception: {exception})");
 				await Task.Delay(1000 * message.SendAttempts);
