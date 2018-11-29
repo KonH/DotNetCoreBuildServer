@@ -7,6 +7,7 @@ using Server.Views;
 using SlackBotNet;
 using Microsoft.Extensions.Logging;
 using SlackBotNet.Messages;
+using SlackBotNetExtensions;
 
 namespace Server.Services {
 	public class SlackService : IService, IContextService {
@@ -33,6 +34,8 @@ namespace Server.Services {
 		string   _name;
 		string   _hub;
 		SlackBot _bot;
+
+		WebsocketResurrector _resurrector;
 
 		bool IsValidSettings(string name, string token, string hub) {
 			return
@@ -65,6 +68,7 @@ namespace Server.Services {
 				_logger.LogDebug(
 					$"InitBot: Start initialize with  \"{name}\", token: \"{token}\", hub: \"{hub}\"");
 				InitBotAsync(token, loggerFactory).GetAwaiter().GetResult();
+				_resurrector = SetupResurrector();
 			} catch (Exception e) {
 				_logger.LogError($"InitBot: exception: \"{e}\"");
 				return false;
@@ -83,6 +87,12 @@ namespace Server.Services {
 				config.LoggerFactory = loggerFactory;
 				config.OnSendMessageFailure = OnSendMessageFailure;
 			});
+		}
+
+		WebsocketResurrector SetupResurrector() {
+			var resurrector = new WebsocketResurrector(_bot, _loggerFactory);
+			resurrector.Start();
+			return resurrector;
 		}
 
 		async void OnSendMessageFailure(IThrottleQueue<IMessage> queue, IMessage message, ILogger logger, Exception exception) {
