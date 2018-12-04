@@ -24,8 +24,8 @@ namespace Server.Views {
 			_service.SendMessage($"```{message}```");
 		}
 
-		protected override void OnHelpRequest() {
-			_service.SendMessage(GetHelpMessage());
+		protected override void OnHelpRequest(string arg) {
+			_service.SendMessage(GetHelpMessage(arg));
 		}
 		
 		protected override void OnStatusRequest() {

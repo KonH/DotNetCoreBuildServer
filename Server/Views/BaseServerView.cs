@@ -51,7 +51,7 @@ namespace Server.Views {
 			var wrap = WithContext(context);
 			Server.OnCommonMessage += wrap.Subscribe<string>(OnCommonMessage);
 			Server.OnInitBuild     += wrap.Subscribe<BuildProcess>(OnInitBuild);
-			Server.OnHelpRequest   += wrap.Subscribe(OnHelpRequest);
+			Server.OnHelpRequest   += wrap.Subscribe<string>(OnHelpRequest);
 			Server.OnStatusRequest += wrap.Subscribe(OnStatusRequest);
 
 			Server.OnStop         += OnStop;
@@ -66,15 +66,35 @@ namespace Server.Views {
 		protected abstract void OnCommonError(string message, bool isFatal);
 		protected abstract void OnCommonMessage(string message);
 
+		protected string GetHelpMessage(string arg) {
+			if ( string.IsNullOrEmpty(arg) ) {
+				return GetHelpMessage();
+			}
+			var sb = new StringBuilder();
+			var builds = Server.FindBuilds();
+			Build buildInfo = null;
+			if ( builds.TryGetValue(arg, out buildInfo) ) {
+				if ( string.IsNullOrEmpty(buildInfo.LongDescription) ) {
+					sb.Append($"Help for '{arg}' not found.\n");
+				} else {
+					sb.Append($"{arg}:\n");
+					sb.Append(buildInfo.LongDescription);
+				}
+			} else {
+				sb.Append($"Build '{arg}' not found.\n");
+			}
+			return sb.ToString();
+		}
+
 		protected string GetHelpMessage() {
 			var sb = new StringBuilder();
 			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
 			sb.Append("Commands:\n");
-			foreach ( var handler in Server.Commands.All ) {
+			foreach (var handler in Server.Commands.All) {
 				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
 			}
 			sb.Append("Services:\n");
-			foreach ( var service in Server.Services ) {
+			foreach (var service in Server.Services) {
 				sb.Append($"- {service.GetType().Name}\n");
 			}
 			sb.Append("Builds:\n");
@@ -83,7 +103,7 @@ namespace Server.Views {
 			return sb.ToString();
 		}
 
-		protected abstract void OnHelpRequest();
+		protected abstract void OnHelpRequest(string arg);
 		
 		protected void AppendTaskInfo(BuildTask task, StringBuilder sb) {
 			var allTasks = Process.Tasks;
@@ -139,6 +159,11 @@ namespace Server.Views {
 						}
 					}
 					sb.Append(")");
+				}
+				var desc = build.Value.ShortDescription;
+				if ( !string.IsNullOrEmpty(desc) ) {
+					sb.Append(" : ");
+					sb.Append(desc);
 				}
 				sb.Append("\n");
 			}

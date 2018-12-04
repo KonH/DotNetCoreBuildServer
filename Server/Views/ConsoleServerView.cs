@@ -44,9 +44,9 @@ namespace Server.Views {
 			WriteLine(GetStatusMessage());
 		}
 
-		protected override void OnHelpRequest() {
+		protected override void OnHelpRequest(string arg) {
 			WriteLine();
-			WriteLine(GetHelpMessage());
+			WriteLine(GetHelpMessage(arg));
 		}
 		
 		protected override void OnBuildProcessStarted() {

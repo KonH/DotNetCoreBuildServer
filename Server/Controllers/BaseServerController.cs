@@ -22,12 +22,16 @@ namespace Server.Controllers {
 			Context = context;
 		}
 
-		void RequestHelp(RequestContext context) {
+		void RequestHelp(RequestContext context, RequestArgs args) {
 			if ( context != Context ) {
 				return;
 			}
 			_logger.LogDebug("RequestHelp");
-			Server.RequestHelp(Context);
+			if ( args.Count > 0 ) {
+				Server.RequestHelp(Context, args[0]);
+			} else {
+				Server.RequestHelp(Context,null);
+			}
 		}
 		
 		void RequestStatus(RequestContext context) {

@@ -17,7 +17,7 @@ namespace Server.Runtime {
 
 		public event Action<RequestContext>               OnStatusRequest;
 		public event Action<RequestContext, string>       OnCommonMessage;
-		public event Action<RequestContext>               OnHelpRequest;
+		public event Action<RequestContext, string>       OnHelpRequest;
 		public event Action<RequestContext, BuildProcess> OnInitBuild;
 
 		public event Action<string, bool> OnCommonError;
@@ -464,9 +464,9 @@ namespace Server.Runtime {
 			_logger.LogDebug("StopServer: done");
 		}
 
-		public void RequestHelp(RequestContext context) {
+		public void RequestHelp(RequestContext context, string arg) {
 			_logger.LogDebug("RequestHelp");
-			OnHelpRequest?.Invoke(context);
+			OnHelpRequest?.Invoke(context, arg);
 		}
 
 		public void RaiseCommonError(string message, bool isFatal) {

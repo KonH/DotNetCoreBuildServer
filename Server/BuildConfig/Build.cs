@@ -7,18 +7,23 @@ using Microsoft.Extensions.Logging;
 namespace Server.BuildConfig {
 	public class Build {
 		
-		public string          Name    { get; }
-		public string          LogFile { get; }
-		public List<string>    Args    { get; }
-		public List<string>    Checks  { get; }
-		public List<BuildNode> Nodes   { get; }
+		public string          Name             { get; }
+		public string          ShortDescription { get; }
+		public string          LongDescription  { get; }
+		public string          LogFile          { get; }
+		public List<string>    Args             { get; }
+		public List<string>    Checks           { get; }
+		public List<BuildNode> Nodes            { get; }
 
-		Build(string name, string logFile, IEnumerable<string> args, IEnumerable<string> checks, IEnumerable<BuildNode> nodes) {
-			Name    = name;
-			LogFile = logFile;
-			Args    = args.ToList();
-			Checks  = checks.ToList();
-			Nodes   = nodes.ToList();
+		Build(string name, string shortDescription, string longDescription, string logFile,
+				IEnumerable<string> args, IEnumerable<string> checks, IEnumerable<BuildNode> nodes) {
+			Name             = name;
+			ShortDescription = shortDescription;
+			LongDescription  = longDescription;
+			LogFile          = logFile;
+			Args             = args.ToList();
+			Checks           = checks.ToList();
+			Nodes            = nodes.ToList();
 		}
 
 		static void ProcessTasks(ILogger logger, IConfiguration configNode, ICollection<BuildNode> buildNodes) {
@@ -75,6 +80,8 @@ namespace Server.BuildConfig {
 			var buildArgs = new List<string>();
 			var argsChecks = new List<string>();
 			var rootNodes = config.GetChildren();
+			var shortDescription = "";
+			var longDescription = "";
 			string logFile = null;
 			foreach (var node in rootNodes) {
 				logger.LogDebug($"Build.Load: rootNode: \"{node.Key}\"");
@@ -98,9 +105,17 @@ namespace Server.BuildConfig {
 							logger.LogDebug($"Build.Load: Log file is \"{logFile}\"");
 							break;
 						}
+					case "short_description": {
+							shortDescription = node.Value;
+							break;
+					}
+					case "long_description": {
+							longDescription = node.Value;
+							break;
+					}
 				}
 			}
-			var build = new Build(name, logFile, buildArgs, argsChecks, buildNodes);
+			var build = new Build(name, shortDescription, longDescription, logFile, buildArgs, argsChecks, buildNodes);
 			return build;
 		}
 	}
