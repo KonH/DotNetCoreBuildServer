@@ -15,8 +15,10 @@ namespace Server.Views {
 		}
 
 		protected override void OnCommonError(string message, bool isFatal) {
-			if (isFatal) {
-				_service.SendMessage($":bangbang: *Error:* {message}");
+			if ( isFatal ) {
+				_service.SendMessage($":bangbang::skull: *Fatal error:* {message}");
+			} else {
+				_service.SendMessage($":exclamation: *Error:* {message}");
 			}
 		}
 

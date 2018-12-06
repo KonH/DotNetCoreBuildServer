@@ -53,12 +53,12 @@ namespace Server.Controllers {
 				return;
 			}
 			if (!builds.TryGetValue(buildName, out build)) {
-				Server.RaiseCommonError("StartBuild: Wrong build name!", false);
+				Server.RaiseCommonError("StartBuild: Wrong Build task name!", false);
 				return;
 			}
 			if (args.Count < build.Args.Count) {
 				Server.RaiseCommonError(
-					$"StartBuild: build required {build.Args.Count} args, but {args.Count} args is provided!",
+					$"StartBuild: Build task requires {build.Args.Count} arguments, but {args.Count} arguments are provided!\nUse 'help {build.Name}' to get more info.",
 					true);
 				return;
 			}
