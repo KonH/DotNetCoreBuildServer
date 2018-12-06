@@ -16,7 +16,7 @@ namespace Server.Views {
 
 		protected override void OnCommonError(string message, bool isFatal) {
 			if (isFatal) {
-				_service.SendMessage($"Error: {message}");
+				_service.SendMessage($":bangbang: *Error:* {message}");
 			}
 		}
 
@@ -31,7 +31,11 @@ namespace Server.Views {
 		protected override void OnStatusRequest() {
 			_service.SendMessage(GetStatusMessage());
 		}
-		
+
+		protected override string GetBuildProcessStartMessage() {
+			return $":arrow_forward: *Build task started:* {Process.Name} {GetBuildArgsMessage()}\n";
+		}
+
 		protected override void OnBuildProcessStarted() {
 			_service.SendMessage(GetBuildProcessStartMessage());
 		}
@@ -45,11 +49,16 @@ namespace Server.Views {
 				return;
 			}
 			var sb = new StringBuilder();
-			sb.Append($"Build done: {Process.Name} {GetBuildArgsMessage()}\n"); 
-			sb.Append($"(success: {Process.IsSuccess}) for {Process.WorkTime}\n");
+			sb.Append($":black_square_for_stop: *Build task ended:* {Process.Name} {GetBuildArgsMessage()}\n");
+			if ( Process.IsSuccess ) {
+				sb.Append(":heavy_check_mark: Result: *Success*\n");
+			} else {
+				sb.Append(":x: Result: *Fail*\n");
+			}
+			sb.Append($":stopwatch: Elapsed time: {Utils.FormatTimeSpan(Process.WorkTime)}\n");
 			var lastTask = Process.Tasks.Last();
 			if (lastTask.IsSuccess) {
-				sb.Append("Last task message:\n```\n");
+				sb.Append(":memo: Last task message:\n```\n");
 				sb.Append(lastTask.Message);
 				sb.Append("\n```");
 			} else {

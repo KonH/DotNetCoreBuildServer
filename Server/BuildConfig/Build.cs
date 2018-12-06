@@ -5,18 +5,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Server.BuildConfig {
-	public class Build {
-		
+	public class Build {		
 		public string          Name             { get; }
 		public string          ShortDescription { get; }
 		public string          LongDescription  { get; }
 		public string          LogFile          { get; }
+		public List<string>    ArgsDescription  { get; }	
 		public List<string>    Args             { get; }
 		public List<string>    Checks           { get; }
 		public List<BuildNode> Nodes            { get; }
 
 		Build(string name, string shortDescription, string longDescription, string logFile,
-				IEnumerable<string> args, IEnumerable<string> checks, IEnumerable<BuildNode> nodes) {
+				IEnumerable<string> args, IEnumerable<string> argsDescs, IEnumerable<string> checks, IEnumerable<BuildNode> nodes) {
 			Name             = name;
 			ShortDescription = shortDescription;
 			LongDescription  = longDescription;
@@ -79,6 +79,7 @@ namespace Server.BuildConfig {
 			var buildNodes = new List<BuildNode>();
 			var buildArgs = new List<string>();
 			var argsChecks = new List<string>();
+			var argsDesc = new List<string>();
 			var rootNodes = config.GetChildren();
 			var shortDescription = "";
 			var longDescription = "";
@@ -113,9 +114,13 @@ namespace Server.BuildConfig {
 							longDescription = node.Value;
 							break;
 					}
+					case "args_description": {
+							ProcessArray("args_description", logger, node, argsDesc);
+							break;
+					}
 				}
 			}
-			var build = new Build(name, shortDescription, longDescription, logFile, buildArgs, argsChecks, buildNodes);
+			var build = new Build(name, shortDescription, longDescription, logFile, buildArgs, argsDesc, argsChecks, buildNodes);
 			return build;
 		}
 	}
