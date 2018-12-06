@@ -74,12 +74,12 @@ namespace Server.Views {
 			var builds = Server.FindBuilds();
 			Build buildInfo = null;
 			if ( arg == "list" ) {
-				GetBuildsList();
+				GetBuildsList(sb);
 			} else if ( builds.TryGetValue(arg, out buildInfo) ) {
 				if ( string.IsNullOrEmpty(buildInfo.LongDescription) ) {
 					sb.Append($"Help for '{arg}' not found.\n");
 				} else {
-					sb.Append($"{arg}:\n");
+					sb.Append($"*{buildInfo.Name}:*\n");
 					sb.Append(buildInfo.LongDescription);
 					sb.Append("\n");
 					AppendBuildArgsInfo(sb, buildInfo);
@@ -108,8 +108,7 @@ namespace Server.Views {
 			return sb.ToString();
 		}
 
-		protected string GetBuildsList() {
-			var sb = new StringBuilder();
+		protected string GetBuildsList(StringBuilder sb) {
 			sb.Append(":hammer_and_pick:*Builds tasks:*\n");
 			var builds = Server.FindBuilds();
 			AppendBuildsInfo(sb, builds);
@@ -123,7 +122,7 @@ namespace Server.Views {
 			var curTaskName = task.Node.Name;
 			var taskIndex = allTasks.IndexOf(task);
 			var totalTasks = allTasks.Count;
-			sb.AppendLine($":repeat: *Current task:* {curTaskName} ({taskIndex}/{totalTasks})\n Start time: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}");
+			sb.AppendLine($":repeat: *Current task:* {curTaskName} ({taskIndex}/{totalTasks})\n:checkered_flag: Start time: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}");
 		}
 
 		protected void AppendEstimateTime(StringBuilder sb) {
@@ -183,12 +182,10 @@ namespace Server.Views {
 		}
 
 		void AppendBuildArgsInfo(StringBuilder sb, Build build) {
-			if ( build == null ) {
-				return;
-			}
-			sb.Append("Arguments list:\n");
-			if ( build.Args.Count == 0 ) {
+			sb.Append("*Arguments list:*\n");
+			if ( build.Args == null || build.Args.Count == 0 ) {
 				sb.Append("No arguments.");
+				return;
 			}
 			var outputDescriptions = build.ArgsDescription.Count == build.Args.Count;
 			int counter = 0;

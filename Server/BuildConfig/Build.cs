@@ -22,6 +22,7 @@ namespace Server.BuildConfig {
 			LongDescription  = longDescription;
 			LogFile          = logFile;
 			Args             = args.ToList();
+			ArgsDescription  = argsDescs.ToList();
 			Checks           = checks.ToList();
 			Nodes            = nodes.ToList();
 		}
