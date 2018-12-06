@@ -58,7 +58,7 @@ namespace Server.Controllers {
 			}
 			if (args.Count < build.Args.Count) {
 				Server.RaiseCommonError(
-					$"StartBuild: build required {build.Args.Count} args, but {args.Count - 1} args is provided!",
+					$"StartBuild: build required {build.Args.Count} args, but {args.Count} args is provided!",
 					true);
 				return;
 			}
