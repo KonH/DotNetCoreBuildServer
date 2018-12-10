@@ -53,6 +53,9 @@ Build config looks like this:
 
 ```
 {
+	"short_description": "Short description of this Build config",
+	"long_description": "Detailed description of this Build config",
+	"args_description": ["arg_0 description", ... "arg_N description"],
 	"args": [
 		"arg_0", "arg_1", ... "arg_N"	
 	],
@@ -74,6 +77,12 @@ Build config looks like this:
 	]
 }
 ```
+
+"short_description" is an optional summary of this Build config. It will be shown on "help list" command output.
+
+"long_description" is an optional description of this Build config. It will be shown on "help build_config_name" command output.
+
+"args_description" is an optional array of Build config's arguments descriptions. These descriptions will be shown on "help build_config_name" command output.
 
 "args_check" is optional and it is a array of regex's, args is checked against them before build.
 
@@ -185,6 +194,7 @@ You can control your server with commands described below:
 - "buildName arg0 arg1 ... argN" - start build with given parameters
 - "abort" - stop current build immediately
 - "help" - show this message
+- "help list" - show list of all builds available
 - "stop" - stop server
 ```
 
