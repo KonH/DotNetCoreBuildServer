@@ -30,7 +30,7 @@ namespace Server.Services {
 		public bool TryInit(BuildServer server, Project project) {
 			_server = server;
 			_server.OnInitBuild += OnInitBuild;
-			_server.AddCommand("stats", "show builds stats (build cout, min,max,average build times)", OnStatsRequested);
+			_server.AddCommand("stats", "show builds stats (build count, min, max, average build times)", OnStatsRequested);
 			_server.AddCommand("history", "show builds history (last completed builds list)", OnHistoryRequested);
 			LoadContainer();
 			_logger.LogDebug($"Container: {_container.Builds.Count} builds");
