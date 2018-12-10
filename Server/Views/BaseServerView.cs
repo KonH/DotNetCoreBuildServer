@@ -187,11 +187,12 @@ namespace Server.Views {
 				sb.Append("No arguments.");
 				return;
 			}
-			var outputDescriptions = build.ArgsDescription.Count == build.Args.Count;
+			var haveDescriptions = build.ArgsDescription != null && build.ArgsDescription.Count > 0;
 			int counter = 0;
 			foreach (var arg in build.Args) {
 				counter++;
-				if ( outputDescriptions ) {
+				var printDescriptions = haveDescriptions && build.ArgsDescription.Count >= counter;
+				if ( printDescriptions ) {
 					sb.Append($"\t{counter}) {arg} : {build.ArgsDescription[counter - 1]}\n");
 				} else {
 					sb.Append($"\t{counter}) {arg}\n");
