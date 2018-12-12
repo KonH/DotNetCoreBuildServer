@@ -44,9 +44,9 @@ namespace Server.Views {
 			WriteLine(GetStatusMessage());
 		}
 
-		protected override void OnHelpRequest() {
+		protected override void OnHelpRequest(string arg) {
 			WriteLine();
-			WriteLine(GetHelpMessage());
+			WriteLine(GetHelpMessage(arg));
 		}
 		
 		protected override void OnBuildProcessStarted() {
@@ -70,8 +70,8 @@ namespace Server.Views {
 				return;
 			}
 			WriteLine();
-			WriteLine($"Build done: {Process.Name} {GetBuildArgsMessage()}");
-			WriteLine($"(success: {Process.IsSuccess}) for {Utils.FormatTimeSpan(Process.WorkTime)}");
+			WriteLine($"Task completed: {Process.Name} {GetBuildArgsMessage()}");
+			WriteLine($"(Success: {Process.IsSuccess}) for {Utils.FormatTimeSpan(Process.WorkTime)}");
 			var lastTask = Process.Tasks.Last();
 			if (lastTask.IsSuccess) {
 				WriteLine("Last task message:");

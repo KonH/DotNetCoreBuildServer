@@ -51,7 +51,7 @@ namespace Server.Views {
 			var wrap = WithContext(context);
 			Server.OnCommonMessage += wrap.Subscribe<string>(OnCommonMessage);
 			Server.OnInitBuild     += wrap.Subscribe<BuildProcess>(OnInitBuild);
-			Server.OnHelpRequest   += wrap.Subscribe(OnHelpRequest);
+			Server.OnHelpRequest   += wrap.Subscribe<string>(OnHelpRequest);
 			Server.OnStatusRequest += wrap.Subscribe(OnStatusRequest);
 
 			Server.OnStop         += OnStop;
@@ -66,38 +66,70 @@ namespace Server.Views {
 		protected abstract void OnCommonError(string message, bool isFatal);
 		protected abstract void OnCommonMessage(string message);
 
+		protected string GetHelpMessage(string arg) {
+			if ( string.IsNullOrEmpty(arg) ) {
+				return GetHelpMessage();
+			}
+			var sb = new StringBuilder();
+			var builds = Server.FindBuilds();
+			Build buildInfo = null;
+			if ( arg == "list" ) {
+				GetBuildsList(sb);
+			} else if ( builds.TryGetValue(arg, out buildInfo) ) {
+				if ( string.IsNullOrEmpty(buildInfo.LongDescription) ) {
+					sb.Append($"Help for '{arg}' not found.\n");
+				} else {
+					sb.Append($"*{buildInfo.Name}:*\n");
+					sb.Append(buildInfo.LongDescription);
+					sb.Append("\n");
+					AppendBuildArgsInfo(sb, buildInfo);
+				}
+			} else {
+				sb.Append($"Build task '{arg}' not found.\n");
+			}
+			return sb.ToString();
+		}
+
 		protected string GetHelpMessage() {
 			var sb = new StringBuilder();
-			sb.Append($"{Server.Name} ({Server.ServiceName})\n");
-			sb.Append("Commands:\n");
-			foreach ( var handler in Server.Commands.All ) {
-				sb.Append($"- \"{handler.Key}\" - {handler.Value.First().Description}\n");
+			sb.Append($":desktop_computer:*{Server.Name} ({Server.ServiceName})*\n");
+			sb.Append(":diamonds:*Commands:*\n");
+			foreach (var handler in Server.Commands.All) {
+				sb.Append($"\t • \"{handler.Key}\" - {handler.Value.First().Description}\n");
 			}
-			sb.Append("Services:\n");
-			foreach ( var service in Server.Services ) {
-				sb.Append($"- {service.GetType().Name}\n");
+			sb.Append("\n");
+			sb.Append(":diamonds:*Services:*\n");
+			foreach (var service in Server.Services) {
+				sb.Append($"\t • {service.GetType().Name}\n");
 			}
-			sb.Append("Builds:\n");
+			sb.Append("\n");
+			sb.Append(":memo: To print a list of all available Build tasks, use 'help list'.\n");
+			sb.Append(":memo: To get help on the Build task, enter 'help' and the task name separated by a space.'\n");
+			return sb.ToString();
+		}
+
+		protected string GetBuildsList(StringBuilder sb) {
+			sb.Append(":hammer_and_pick:*Builds tasks:*\n");
 			var builds = Server.FindBuilds();
 			AppendBuildsInfo(sb, builds);
 			return sb.ToString();
 		}
 
-		protected abstract void OnHelpRequest();
+		protected abstract void OnHelpRequest(string arg);
 		
 		protected void AppendTaskInfo(BuildTask task, StringBuilder sb) {
 			var allTasks = Process.Tasks;
 			var curTaskName = task.Node.Name;
 			var taskIndex = allTasks.IndexOf(task);
 			var totalTasks = allTasks.Count;
-			sb.AppendLine($"Task: {curTaskName} ({taskIndex}/{totalTasks}) started: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}");
+			sb.AppendLine($":repeat: *Current task:* {curTaskName} ({taskIndex}/{totalTasks})\n:checkered_flag: Start time: {task.StartTime}, duration: {Utils.FormatTimeSpan(DateTime.Now - task.StartTime)}");
 		}
 
 		protected void AppendEstimateTime(StringBuilder sb) {
 			var statService = Server.FindService<StatService>();
 			if ( statService != null ) {
 				if ( statService.HasStatistics(Process.Name)) {
-					sb.Append("Estimate end time: ");
+					sb.Append(":hourglass: Estimated end time: ");
 					sb.Append(statService.FindEstimateEndTime(Process.Name, Process.StartTime));
 					sb.AppendLine();
 				}
@@ -107,7 +139,7 @@ namespace Server.Views {
 		protected string GetStatusMessage() {
 			var sb = new StringBuilder();
 			if ( Process == null ) {
-				sb.Append("Is busy: false\n");
+				sb.Append("*Status:* Server is not busy :heavy_check_mark:\n");
 			}
 			var curTasks = Process?.CurrentTasks;
 			if ((curTasks != null) && (curTasks.Count > 0)) {
@@ -127,7 +159,7 @@ namespace Server.Views {
 				return;
 			}
 			foreach (var build in builds) {
-				sb.Append($"- {build.Key}");
+				sb.Append($"\t • {build.Key}");
 				var args = build.Value.Args;
 				if (args.Count > 0) {
 					sb.Append(" (");
@@ -140,7 +172,31 @@ namespace Server.Views {
 					}
 					sb.Append(")");
 				}
+				var desc = build.Value.ShortDescription;
+				if ( !string.IsNullOrEmpty(desc) ) {
+					sb.Append(" - ");
+					sb.Append(desc);
+				}
 				sb.Append("\n");
+			}
+		}
+
+		void AppendBuildArgsInfo(StringBuilder sb, Build build) {
+			sb.Append("*Arguments list:*\n");
+			if ( build.Args == null || build.Args.Count == 0 ) {
+				sb.Append("No arguments.");
+				return;
+			}
+			var haveDescriptions = build.ArgsDescription != null && build.ArgsDescription.Count > 0;
+			int counter = 0;
+			foreach (var arg in build.Args) {
+				counter++;
+				var printDescriptions = haveDescriptions && build.ArgsDescription.Count >= counter;
+				if ( printDescriptions ) {
+					sb.Append($"\t{counter}) {arg} : {build.ArgsDescription[counter - 1]}\n");
+				} else {
+					sb.Append($"\t{counter}) {arg}\n");
+				}
 			}
 		}
 		
@@ -170,7 +226,7 @@ namespace Server.Views {
 			return msg;
 		}
 		
-		protected string GetBuildProcessStartMessage() {
+		protected virtual string GetBuildProcessStartMessage() {
 			return $"Build started: {Process.Name} {GetBuildArgsMessage()}\n";
 		}
 		

@@ -22,12 +22,16 @@ namespace Server.Controllers {
 			Context = context;
 		}
 
-		void RequestHelp(RequestContext context) {
+		void RequestHelp(RequestContext context, RequestArgs args) {
 			if ( context != Context ) {
 				return;
 			}
 			_logger.LogDebug("RequestHelp");
-			Server.RequestHelp(Context);
+			if ( args.Count > 0 ) {
+				Server.RequestHelp(Context, args[0]);
+			} else {
+				Server.RequestHelp(Context,null);
+			}
 		}
 		
 		void RequestStatus(RequestContext context) {
@@ -49,12 +53,12 @@ namespace Server.Controllers {
 				return;
 			}
 			if (!builds.TryGetValue(buildName, out build)) {
-				Server.RaiseCommonError("StartBuild: Wrong build name!", false);
+				Server.RaiseCommonError("StartBuild: Wrong Build task name!", false);
 				return;
 			}
 			if (args.Count < build.Args.Count) {
 				Server.RaiseCommonError(
-					$"StartBuild: build required {build.Args.Count} args, but {args.Count - 1} args is provided!",
+					$"StartBuild: Build task requires {build.Args.Count} arguments, but {args.Count} arguments are provided!\nUse 'help {build.Name}' to get more info.",
 					true);
 				return;
 			}
